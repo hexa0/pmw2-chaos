@@ -58,6 +58,7 @@ void ChaosObject_Effect_WhackControls(chaos_object_t *obj, randomEffectMessage m
 }
 
 void ChaosObject_Effect_Invisible(chaos_object_t *obj, randomEffectMessage message) {
+	// TODO: find a better way to do this so we don't fuck up pacman's anim_ctrl
 	switch (message) {
 		case effect_activate:
 			pacManObject->model->num_nodes = 0;
@@ -89,11 +90,9 @@ void ChaosObject_Effect_PaperPac(chaos_object_t *obj, randomEffectMessage messag
 	switch (message) {
 		case effect_activate:
 			pacManObject->model->node_list[2]->scale[2] = 0.1f;
-			drawPacManShadow = false;
 			break;
 		case effect_deactive:
 			pacManObject->model->node_list[2]->scale[2] = 1.0f;
-			drawPacManShadow = true;
 			break;
 		default:
 			break;
@@ -203,6 +202,40 @@ void ChaosObject_Init(chaos_object_t *obj)
 	obj->totalActiveEffects = 0;
 }
 
+void ChaosObject_Process(chaos_object_t *obj)
+{
+	if (CHAOS_SHOULD_APPLY)
+	{
+		obj->timer = obj->timer + (gameTime - oldGameTime);
+
+		for (int i = 0; i < obj->totalActiveEffects; i++) {
+			int effectId = obj->activeEffectIds[i];
+        	const chaos_effect_t* effect = &gChaosEffects[effectId];
+
+			if (obj->timer >= obj->activeEffectExpirations[i]) {
+				effect->event(obj, effect_deactive);
+
+				for (int j = i; j < obj->totalActiveEffects - 1; j++) {
+					obj->activeEffectIds[j] = obj->activeEffectIds[j + 1];
+					obj->activeEffectExpirations[j] = obj->activeEffectExpirations[j + 1];
+				}
+
+				obj->totalActiveEffects--;
+				i--;
+			}
+			else {
+				effect->event(obj, effect_update);
+			}
+		}
+	}
+
+	if (obj->timer > obj->nextEffect && obj->totalActiveEffects < 16) {
+		if (ChaosObject_AddRandomEffect(obj)) {
+			obj->nextEffect = obj->nextEffect + CHAOS_EFFECT_RATE;
+		}
+	}
+}
+
 void ChaosObject_Render(chaos_object_t *obj)
 {
 	if (CHAOS_SHOULD_APPLY) {	
@@ -241,37 +274,12 @@ void ChaosObject_Render(chaos_object_t *obj)
 	}
 }
 
-void ChaosObject_Process(chaos_object_t *obj)
+void ChaosObject_Delete(chaos_object_t *obj)
 {
-	if (CHAOS_SHOULD_APPLY)
-	{
-		obj->timer = obj->timer + (gameTime - oldGameTime);
-
-		for (int i = 0; i < obj->totalActiveEffects; i++) {
-			int effectId = obj->activeEffectIds[i];
-        	const chaos_effect_t* effect = &gChaosEffects[effectId];
-
-			if (obj->timer >= obj->activeEffectExpirations[i]) {
-				effect->event(obj, effect_deactive);
-
-				for (int j = i; j < obj->totalActiveEffects - 1; j++) {
-					obj->activeEffectIds[j] = obj->activeEffectIds[j + 1];
-					obj->activeEffectExpirations[j] = obj->activeEffectExpirations[j + 1];
-				}
-
-				obj->totalActiveEffects--;
-				i--;
-			}
-			else {
-				effect->event(obj, effect_update);
-			}
-		}
-	}
-
-	if (obj->timer > obj->nextEffect && obj->totalActiveEffects < 16) {
-		if (ChaosObject_AddRandomEffect(obj)) {
-			obj->nextEffect = obj->nextEffect + CHAOS_EFFECT_RATE;
-		}
+	// deactivate all effects when the chaosObject is removed
+	for (int i = 0; i < obj->totalActiveEffects; i++) {
+		int id = obj->activeEffectIds[i];
+		gChaosEffects[id].event(obj, effect_deactive);
 	}
 }
 
@@ -289,6 +297,9 @@ int ChaosObject(OBJHEAD *hd, messageType message, void *data)
 			break;
 		case msg_render:
 			ChaosObject_Render(obj);
+			break;
+		case msg_delete:
+			ChaosObject_Delete(obj);
 			break;
 		default:
 			break;
