@@ -204,7 +204,7 @@ void ChaosObject_Init(chaos_object_t *obj)
 
 void ChaosObject_Render(chaos_object_t *obj)
 {
-	if (!ScreenFaderActive()) {	
+	if (!ScreenFaderActive() && !gPacManOnMap && !pacNoControl) {	
 		char effectListBuf[512];
 		char* effectListBufPtr = effectListBuf;
 

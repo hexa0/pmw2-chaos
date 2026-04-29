@@ -1678,4 +1678,7 @@ extern BOOL ScreenFaderActive(void);
 /// @brief returns 1 (true) if the screen fader is currently fading, ScreenFaderActive can be more reliable though
 extern BOOL ScreenFaderFading(void);
 
+extern BOOL gPacManOnMap;
+extern BOOL pacNoControl;
+
 #endif // GAME_H
