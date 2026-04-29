@@ -1569,6 +1569,9 @@ extern int PMOnFrostUp(OBJHEAD *obj, PacmanStateMessage msg);
 extern int PMTeleportIn(OBJHEAD *obj, PacmanStateMessage msg);
 extern int PMTeleportOut(OBJHEAD *obj, PacmanStateMessage msg);
 
+extern float pacManGlobalScale;
+extern float pacManGlobalMovementTweak;
+
 /// @brief resets to 0 at the start of each level and only counts up when unpaused
 extern float gameTime;
 /// @brief same as gameTime but it tracks the value from last frame

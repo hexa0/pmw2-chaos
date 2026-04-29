@@ -10,11 +10,27 @@ void assemble_jal_at(unsigned int addr, unsigned int to) {
 	*(volatile unsigned int*)addr = instruction;
 }
 
-/// @brief UNIMPLEMENTED, DO NOT USE!!!! assembles and writes a J instruction at the specified address
+/// @brief assembles and writes a J instruction at the specified address
 /// @param addr address to write to
 /// @param to address to j to
 void assemble_j_at(unsigned int addr, unsigned int to) {
+	unsigned int instruction = (0x08000000) | ((to & 0x0FFFFFFF) >> 2);
+    *(volatile unsigned int*)addr = instruction;
+}
 
+/// @brief assembles and writes a NOP instruction at the specified address
+/// @param addr address to write to
+void assemble_nop_at(unsigned int addr) {
+	*(volatile unsigned int*)addr = 0x00000000;
+}
+
+void patch_word(unsigned int addr, unsigned int data) {
+	unsigned int swapped = ((data>>24)&0xff) |
+                           ((data<<8)&0xff0000) |
+                           ((data>>8)&0xff00) |
+                           ((data<<24)&0xff000000);
+
+    *(volatile unsigned int*)addr = swapped;
 }
 
 /// @brief stubs the specified function
