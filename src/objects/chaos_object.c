@@ -245,11 +245,16 @@ void ChaosObject_Effect_HighGravity(chaos_object_t *obj, randomEffectMessage mes
 	}
 }
 
+#define EFFECT_GROUP_NONE 0
+#define EFFECT_GROUP_SPEED 1
+#define EFFECT_GROUP_SIZE 2
+#define EFFECT_GROUP_GRAVITY 3
+
 static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_WhackControls,
 		.name = "Whacked Controls",
-		.group = 0,
+		.group = EFFECT_GROUP_NONE,
 		.weight = 0.7f,
 		.durationMin = 20.0f,
 		.durationMax = 35.0f
@@ -257,7 +262,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_Invisible,
 		.name = "Invisible",
-		.group = 0,
+		.group = EFFECT_GROUP_NONE,
 		.weight = 1.0f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -265,7 +270,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_PaperPac,
 		.name = "Paper Pac",
-		.group = 0,
+		.group = EFFECT_GROUP_NONE,
 		.weight = 1.0f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -273,7 +278,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_PancakePac,
 		.name = "Pancake Pac",
-		.group = 0,
+		.group = EFFECT_GROUP_NONE,
 		.weight = 0.4f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -281,7 +286,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_PissUI,
 		.name = "Piss UI",
-		.group = 0,
+		.group = EFFECT_GROUP_NONE,
 		.weight = 1.0f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -289,7 +294,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_SlowSpeed,
 		.name = "Slow Speed",
-		.group = 1,
+		.group = EFFECT_GROUP_SPEED,
 		.weight = 1.0f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -297,7 +302,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_FastSpeed,
 		.name = "Fast Speed",
-		.group = 1,
+		.group = EFFECT_GROUP_SPEED,
 		// lowered because this causes ledge grabs to send you into the stratosphere
 		.weight = 0.7f,
 		.durationMin = 30.0f,
@@ -306,7 +311,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_BackwardsSpeed,
 		.name = "Moonwalk",
-		.group = 1,
+		.group = EFFECT_GROUP_SPEED,
 		.weight = 1.0f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -314,7 +319,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_BigPacman,
 		.name = "BigPac",
-		.group = 2,
+		.group = EFFECT_GROUP_SIZE,
 		.weight = 1.0f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -322,7 +327,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_UltraBigPacman,
 		.name = "UltraBigPac",
-		.group = 2,
+		.group = EFFECT_GROUP_SIZE,
 		.weight = 0.7f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -330,7 +335,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_UltraSmallPacman,
 		.name = "UltraSmallPac",
-		.group = 2,
+		.group = EFFECT_GROUP_SIZE,
 		.weight = 0.7f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -338,7 +343,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_SmallPacman,
 		.name = "SmallPac",
-		.group = 2,
+		.group = EFFECT_GROUP_SIZE,
 		.weight = 1.0f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -346,7 +351,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_LowGravity,
 		.name = "Low Gravity",
-		.group = 3,
+		.group = EFFECT_GROUP_GRAVITY,
 		.weight = 1.0f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
@@ -354,7 +359,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_HighGravity,
 		.name = "High Gravity",
-		.group = 3,
+		.group = EFFECT_GROUP_GRAVITY,
 		.weight = 1.0f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
