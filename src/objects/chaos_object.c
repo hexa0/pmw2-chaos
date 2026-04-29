@@ -6,7 +6,7 @@ static float gDurationMultipler = 1.0f;
 
 /// @brief at base difficulty we apply a new effect after so many seconds, this will be scaled with difficulty
 #define CHAOS_EFFECT_RATE 20.0f / gRateDiviser
-#define CHAOS_SHOULD_APPLY !ScreenFaderActive() && !gPacManOnMap && !pacNoControl
+#define CHAOS_SHOULD_APPLY !gPacManOnMap && !pacNoControl
 
 typedef struct chaos_object_s
 {
@@ -388,13 +388,13 @@ BOOL ChaosObject_AddRandomEffect(chaos_object_t *obj)
 void ChaosObject_Init(chaos_object_t *obj)
 {
 	obj->timer = 0.0f;
-	obj->nextEffect = CHAOS_EFFECT_RATE;
+	obj->nextEffect = -0.001f; // this is an absolute hack, but since when init is called the CHAOS_SHOULD_APPLY isn't ready do this
 	obj->totalActiveEffects = 0;
 }
 
 void ChaosObject_Process(chaos_object_t *obj)
 {
-	if (CHAOS_SHOULD_APPLY)
+	if (!ScreenFaderActive() && CHAOS_SHOULD_APPLY)
 	{
 		obj->timer = obj->timer + (gameTime - oldGameTime);
 
@@ -419,7 +419,7 @@ void ChaosObject_Process(chaos_object_t *obj)
 		}
 	}
 
-	if (obj->timer > obj->nextEffect && obj->totalActiveEffects < 16) {
+	if (CHAOS_SHOULD_APPLY && obj->timer > obj->nextEffect && obj->totalActiveEffects < 16) {
 		if (ChaosObject_AddRandomEffect(obj)) {
 			obj->nextEffect = obj->nextEffect + CHAOS_EFFECT_RATE;
 		}
@@ -428,7 +428,7 @@ void ChaosObject_Process(chaos_object_t *obj)
 
 void ChaosObject_Render(chaos_object_t *obj)
 {
-	if (CHAOS_SHOULD_APPLY) {	
+	if (!ScreenFaderActive() && CHAOS_SHOULD_APPLY) {	
 		char effectListBuf[512];
 		char* effectListBufPtr = effectListBuf;
 
