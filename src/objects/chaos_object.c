@@ -6,6 +6,7 @@ static float gDurationMultipler = 1.0f;
 
 /// @brief at base difficulty we apply a new effect after so many seconds, this will be scaled with difficulty
 #define CHAOS_EFFECT_RATE 20.0f / gRateDiviser
+#define CHAOS_SHOULD_APPLY !ScreenFaderActive() && !gPacManOnMap && !pacNoControl
 
 typedef struct chaos_object_s
 {
@@ -204,7 +205,7 @@ void ChaosObject_Init(chaos_object_t *obj)
 
 void ChaosObject_Render(chaos_object_t *obj)
 {
-	if (!ScreenFaderActive() && !gPacManOnMap && !pacNoControl) {	
+	if (CHAOS_SHOULD_APPLY) {	
 		char effectListBuf[512];
 		char* effectListBufPtr = effectListBuf;
 
@@ -242,7 +243,7 @@ void ChaosObject_Render(chaos_object_t *obj)
 
 void ChaosObject_Process(chaos_object_t *obj)
 {
-	if (!ScreenFaderActive())
+	if (CHAOS_SHOULD_APPLY)
 	{
 		obj->timer = obj->timer + (gameTime - oldGameTime);
 
