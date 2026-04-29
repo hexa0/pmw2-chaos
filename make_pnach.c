@@ -15,11 +15,11 @@ int main(int argc, char *argv[])
 
 	uint32_t entry_ram_addr = (uint32_t)strtoul(argv[1], NULL, 16);
 
-	FILE *bin = fopen(".tmp/main.bin", "rb");
+	FILE *bin = fopen(".tmp/patch.bin", "rb");
 
 	if (!bin)
 	{
-		fprintf(stderr, "Error: Could not open .tmp/main.bin\n");
+		fprintf(stderr, "could not open .tmp/patch.bin\n");
 		return 1;
 	}
 
@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
 	FILE *out = fopen(filename, "w");
 
 	fprintf(out, "gametitle=Pac-Man World 2 (U)(SLUS-20224) (Greatest Hits)\n");
-	fprintf(out, "comment=Mod Test\n\n");
-	fprintf(out, "[Mod]\n");
+	// fprintf(out, "comment=\n\n");
+	fprintf(out, "[Chaos Edition]\n");
 	fprintf(out, "author=hexa.pet\n");
 
 	uint8_t byte;

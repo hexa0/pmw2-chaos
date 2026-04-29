@@ -1,6 +1,7 @@
-#include "game/pacman.c"
-#include "util.c"
-#include "objects/debug_object.c"
+#include "game/pmw2lib.h"
+#include "util.h"
+#include "objects/debug_object.h"
+#include "objects/chaos_object.h"
 
 void pre_sound_update()
 {
@@ -12,7 +13,10 @@ void pre_sound_update()
 		// i assume since the streaming is hard coded it doesn't ever set status to 1
 		// so we need to manually skip those 2 voices
 
-		if (active_sounds[i].status == 0 && i > 1)
+		// we have to strncmp here since the fallback error sound is otherwise muted if the sound symbol is not loaded from the current sound bank
+		// since we check for SND_REVUP directly if other sounds have changing pitches we'd need to account for them here too
+		// a better patch would be to make soundStop set voll and volr to 0, but im too lazy for that
+		if (active_sounds[i].status == 0 && i > 1 && strncmp(active_sounds[i].name, "SND_REVUP", 9) == 0)
 		{
 			active_sounds[i].voll = 0;
 			active_sounds[i].volr = 0;
@@ -84,6 +88,7 @@ void fast_game_start() {
 void create_inventory_hook() {
 	CreatePacInventory();
 	CreateDebugObject();
+	CreateChaosObject();
 }
 
 void inject_create_inventory_hook() {
@@ -91,7 +96,7 @@ void inject_create_inventory_hook() {
 	// CreatePacInventory call in Level_LoadData
 	assemble_jal_at(0x0017F3DC, (unsigned int)&create_inventory_hook);
 	// CreatePacInventory call in SetUpForLoadingScreen
-	assemble_jal_at(0x00183D74, (unsigned int)&create_inventory_hook);
+	// assemble_jal_at(0x00183D74, (unsigned int)&create_inventory_hook);
 }
 
 void fast_startup() {

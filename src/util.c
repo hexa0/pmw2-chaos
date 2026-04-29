@@ -1,8 +1,5 @@
 #include <stdarg.h>
-#include "game/pacman.c"
-
-#ifndef UTIL_C
-#define UTIL_C
+#include "game/pmw2lib.h"
 
 /// @brief assembles and writes a JAL instruction at the specified address
 /// @param addr address to write to
@@ -38,12 +35,14 @@ __asm__ (
     "nop\n"
 );
 
-void fmt(char *buf, char* fmt, ...)
+char* fmt(char *buf, char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
 	vsprintf(buf, fmt, args);
 	va_end(args);
+
+	return buf;
 }
 
 /// @brief %f is fucked, so we have to reimplement it
@@ -55,25 +54,36 @@ char* float_to_str(char* out, float f, int precision) {
 		f = -f;
 	}
 
+	float multiplier = 1.0f;
+	for (int i = 0; i < precision; i++) {
+		multiplier *= 10.0f;
+	}
+
 	int whole = (int)f;
+	float fraction = f - (float)whole;
+
+	int frac_part = (int)(fraction * multiplier + 0.5f);
+
+	if (frac_part >= (int)multiplier) {
+		frac_part = 0;
+		whole++;
+	}
+
 	out += sprintf(out, "%d", whole);
 
 	if (precision > 0) {
 		*out++ = '.';
-		float fraction = f - (float)whole;
-		
-		float multiplier = 1.0f;
-		for (int i = 0; i < precision; i++) multiplier *= 10.0f;
-		
-		int frac_part = (int)(fraction * multiplier + 0.5f);
-		
 		char fmt_buf[8];
 		sprintf(fmt_buf, "%%0%dd", precision);
 		out += sprintf(out, fmt_buf, frac_part);
 	}
 
 	*out = '\0';
+	
 	return res;
 }
 
-#endif // UTIL_C
+/// @brief generate a random 0.0 - 1.0 float
+float frand() {
+    return (float)(rand()) / 2147483647.0f;
+}

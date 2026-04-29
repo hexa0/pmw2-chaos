@@ -1,4 +1,4 @@
-#include "game/pacman.c"
+#include "game/pmw2lib.h"
 #include "patches.c"
 
 void init() {

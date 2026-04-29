@@ -1,5 +1,5 @@
-#ifndef PACMAN_H
-#define PACMAN_H
+#ifndef GAME_H
+#define GAME_H
 
 // all the externs come from game.syms extracted like this:
 // mips64r5900el-ps2-elf-nm -f posix SLUS_202.24 | grep -iE " [tdb] " | awk '{print $1 " = 0x" $3 ";"}' > game.syms
@@ -16,6 +16,10 @@ extern int printf(char *fmt, ...);
 extern int sprintf (char *__restrict __s, const char *__restrict __format, ...);
 extern float sinf(float x);
 extern float cosf(float x);
+extern int strcmp(char *__s1, char *__s2);
+extern int strncmp(char *__s1, char *__s2, unsigned int __n);
+extern void srand(unsigned int seed);
+extern int rand(void);
 
 
 /*	Flush the EE instruction cache
@@ -113,13 +117,14 @@ typedef struct _fvec {
 
 /* the message id passed to an object */
 typedef enum messageType {
-	/// @brief called when object is first created, use this to initialize variables
+	/// @brief fired when object is first created, use this to initialize variables
     msg_init=0,
-	/// @brief called every frame, this should be used to render
+	/// @brief fired every frame, this should be used to render
     msg_render=1,
     msg_processFrameVisible=2,
-	/// @brief only called every frame when unpaused
+	/// @brief only fired every frame when unpaused, it isn't fired when ghosts killed either
 	msg_processFrame=3,
+	/// @brief the object is being deleted, this is fired before it is fully removed
     msg_delete=4,
     msg_pacmaninrange=5,
     msg_collide=6,
@@ -657,6 +662,7 @@ typedef struct _anim_node_tpl {
     unsigned int flags;
 } ANIM_NODE_TPL;
 
+/// @brief Anim Template
 typedef struct _anim_tpl {
     char ID[4];
     float version;
@@ -1288,6 +1294,33 @@ struct DefAnimLinkedSound {
     int Sound;
 };
 
+/// @brief this may not be the correct enum for PACRTN handles? needs further invesitgation
+typedef enum PacmanStateMessage {
+    pacNormal=0,
+    pacInitAct=1,
+    pacDoneAct=2,
+    pacHit=3,
+    pacLanded=4,
+    pacUnderGround=5,
+    pacOnSteep=6,
+    pacDraw=7,
+    pacAtePowerPellet=8,
+    pacAteDot=9,
+    pacKnocked=10,
+    pacDamaged=11,
+    pacKilled=12,
+    pacAteCreature=13,
+    pacOceanLinerEnd=14,
+    pacStuck=15,
+    pacHitChin=16,
+    pacTouchSphere=17,
+    pacSmashedHard=18,
+    pacEndOfLevel=19
+} PacmanStateMessage;
+
+/// @brief Pacman State Handle
+typedef int (*PACRTN)(OBJHEAD *obj, PacmanStateMessage msg);
+
 typedef struct PAC_OBJ {
     OBJHEAD Head;
     ANIM_CTRL *anim_ctrl;
@@ -1302,10 +1335,7 @@ typedef struct PAC_OBJ {
     byte field10_0x6f;
     MOBILEPHYSICS motion;
     unsigned int PMCurrentAnim;
-    byte PMAction;
-    byte field14_0x108;
-    byte field15_0x109;
-    byte field16_0x10a;
+    PACRTN PMAction;
     byte field17_0x10b;
     byte field18_0x10c;
     byte field19_0x10d;
@@ -1461,7 +1491,88 @@ typedef struct PAC_OBJ {
 
 extern PAC_OBJ* pacManObject;
 
+extern BOOL drawPacManShadow;
+
+// all pacman states
+
+extern int PMNormal(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRun(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMJump(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMJumpDown(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRollDownHill(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMSwim(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMButtBounce(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRevUp(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMStandingPunch(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMDolphin(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRunPunch(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMJustLeftWater(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRevRolling(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMHang(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMSlideDown(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMHang2Climb(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMClimb2ClimbUp(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMClimbUp(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMFallBack(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMDoNothing(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMDummyState(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMAIState(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMJumpForce(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMBurnInHell(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMDie(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRunRadiallyAt(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRunAt(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMOnSwingPlat(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMSucked(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMHurled(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMJumpPunch(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMHighAirPunch(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMKnocked(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRecoverButtBounce(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMFrozenBlock(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMFrozenBlockMelt(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMFrozenBlockSleeping(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRunOnMaze(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMOnPooCannon(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMOnBDoing(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMPunchSwitch(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMKnockedDown(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMChainFly(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRevSkid(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRevHelivate(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMButtBounce2Stand(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMJab(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMFall2Land(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMParalyzed(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMThrown(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMHangJump(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMSlipOnIce(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMFall2Hang(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMSwimRevUp(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMTorpedo(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMSquashed(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMSkating(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMDeadTorpedo(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMOceanLiner(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMElectrified(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMStunned(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMBurnOuch(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMFallDown(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMWipeOut(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMOceanLinerTorpedo(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMOceanLinerGlider(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRollerSkating(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMHangJumpDown(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMOnSteep(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMRollSkid(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMOnFrostUp(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMTeleportIn(OBJHEAD *obj, PacmanStateMessage msg);
+extern int PMTeleportOut(OBJHEAD *obj, PacmanStateMessage msg);
+
+/// @brief resets to 0 at the start of each level and only counts up when unpaused
 extern float gameTime;
+/// @brief same as gameTime but it tracks the value from last frame
+extern float oldGameTime;
 
 typedef enum DefPadState {
     PAD_ACTIVE=0,
@@ -1478,49 +1589,49 @@ typedef struct PAD_INFO {
     union {
 		short unsigned int data;
 		struct {
-			unsigned short l2       : 1;
-			unsigned short r2       : 1;
-			unsigned short l1       : 1;
-			unsigned short r1       : 1;
+			unsigned short l2       : 1; // (1 << 0)  | 0x0001
+			unsigned short r2       : 1; // (1 << 1)  | 0x0002
+			unsigned short l1       : 1; // (1 << 2)  | 0x0004
+			unsigned short r1       : 1; // (1 << 3)  | 0x0008
 			
-			unsigned short triangle : 1;
-			unsigned short circle   : 1; 
-			unsigned short cross    : 1;
-			unsigned short square   : 1;
+			unsigned short triangle : 1; // (1 << 4)  | 0x0010
+			unsigned short circle   : 1; // (1 << 5)  | 0x0020
+			unsigned short cross    : 1; // (1 << 6)  | 0x0040
+			unsigned short square   : 1; // (1 << 7)  | 0x0080
 			
-			unsigned short select : 1;
-			unsigned short l3        : 1;
-			unsigned short r3        : 1;
-			unsigned short start : 1;
+			unsigned short select   : 1; // (1 << 8)  | 0x0100
+			unsigned short l3       : 1; // (1 << 9)  | 0x0200
+			unsigned short r3       : 1; // (1 << 10) | 0x0400
+			unsigned short start    : 1; // (1 << 11) | 0x0800
 			
-			unsigned short up       : 1;
-			unsigned short right    : 1;
-			unsigned short down     : 1;
-			unsigned short left     : 1;
+			unsigned short up       : 1; // (1 << 12) | 0x1000
+			unsigned short right    : 1; // (1 << 13) | 0x2000
+			unsigned short down     : 1; // (1 << 14) | 0x4000
+			unsigned short left     : 1; // (1 << 15) | 0x8000
 		} btn;
 	};
     union {
 		short unsigned int old_data;
 		struct {
-			unsigned short l2       : 1;
-			unsigned short r2       : 1;
-			unsigned short l1       : 1;
-			unsigned short r1       : 1;
+			unsigned short l2       : 1; // (1 << 0)  | 0x0001
+			unsigned short r2       : 1; // (1 << 1)  | 0x0002
+			unsigned short l1       : 1; // (1 << 2)  | 0x0004
+			unsigned short r1       : 1; // (1 << 3)  | 0x0008
 			
-			unsigned short triangle : 1;
-			unsigned short circle   : 1; 
-			unsigned short cross    : 1;
-			unsigned short square   : 1;
+			unsigned short triangle : 1; // (1 << 4)  | 0x0010
+			unsigned short circle   : 1; // (1 << 5)  | 0x0020
+			unsigned short cross    : 1; // (1 << 6)  | 0x0040
+			unsigned short square   : 1; // (1 << 7)  | 0x0080
 			
-			unsigned short select : 1;
-			unsigned short l3        : 1;
-			unsigned short r3        : 1;
-			unsigned short start : 1;
+			unsigned short select   : 1; // (1 << 8)  | 0x0100
+			unsigned short l3       : 1; // (1 << 9)  | 0x0200
+			unsigned short r3       : 1; // (1 << 10) | 0x0400
+			unsigned short start    : 1; // (1 << 11) | 0x0800
 			
-			unsigned short up       : 1;
-			unsigned short right    : 1;
-			unsigned short down     : 1;
-			unsigned short left     : 1;
+			unsigned short up       : 1; // (1 << 12) | 0x1000
+			unsigned short right    : 1; // (1 << 13) | 0x2000
+			unsigned short down     : 1; // (1 << 14) | 0x4000
+			unsigned short left     : 1; // (1 << 15) | 0x8000
 		} old_btn;
 	};
     short unsigned int trigger;
@@ -1555,7 +1666,16 @@ extern int playSound(int soundNo, int tone);
 extern int soundPlay(int soundNum);
 extern BOOL widescreenAspect;
 
-/// @brief called before playing fmvs 
+/// @brief called before playing FMVs
 extern void QueueHandler_Disable(void);
 
-#endif // PACMAN_H
+/// @brief if set to 1 the game is paused and the world objects will not send msg_processFrame messages
+extern BOOL paused;
+
+/// @brief returns 1 (true) if the screen fader is currently active 
+extern BOOL ScreenFaderActive(void);
+
+/// @brief returns 1 (true) if the screen fader is currently fading, ScreenFaderActive can be more reliable though
+extern BOOL ScreenFaderFading(void);
+
+#endif // GAME_H
