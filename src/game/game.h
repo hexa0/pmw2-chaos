@@ -1571,6 +1571,7 @@ extern int PMTeleportOut(OBJHEAD *obj, PacmanStateMessage msg);
 
 extern float pacManGlobalScale;
 extern float pacManGlobalMovementTweak;
+extern float GRAVITY;
 
 /// @brief resets to 0 at the start of each level and only counts up when unpaused
 extern float gameTime;

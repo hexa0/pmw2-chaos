@@ -219,6 +219,32 @@ void ChaosObject_Effect_UltraSmallPacman(chaos_object_t *obj, randomEffectMessag
 	}
 }
 
+void ChaosObject_Effect_LowGravity(chaos_object_t *obj, randomEffectMessage message) {
+	switch (message) {
+		case effect_activate:
+			GRAVITY = 0.1f;
+			break;
+		case effect_deactive:
+			GRAVITY = 0.2f;
+			break;
+		default:
+			break;
+	}
+}
+
+void ChaosObject_Effect_HighGravity(chaos_object_t *obj, randomEffectMessage message) {
+	switch (message) {
+		case effect_activate:
+			GRAVITY = 0.4f;
+			break;
+		case effect_deactive:
+			GRAVITY = 0.2f;
+			break;
+		default:
+			break;
+	}
+}
+
 static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_WhackControls,
@@ -313,6 +339,22 @@ static const chaos_effect_t gChaosEffects[] = {
 		.event = ChaosObject_Effect_SmallPacman,
 		.name = "SmallPac",
 		.group = 2,
+		.weight = 1.0f,
+		.durationMin = 30.0f,
+		.durationMax = 35.0f
+	},
+	{
+		.event = ChaosObject_Effect_LowGravity,
+		.name = "Low Gravity",
+		.group = 3,
+		.weight = 1.0f,
+		.durationMin = 30.0f,
+		.durationMax = 35.0f
+	},
+	{
+		.event = ChaosObject_Effect_HighGravity,
+		.name = "High Gravity",
+		.group = 3,
 		.weight = 1.0f,
 		.durationMin = 30.0f,
 		.durationMax = 35.0f
