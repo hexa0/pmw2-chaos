@@ -14,6 +14,7 @@ void init() {
 	inject_world_render_hook();
 	patch_out_sync_padding();
 	inject_create_inventory_hook();
+	replace_screen_adjust_menu();
 
 	printf("flushing EE cache\n");
 	FlushCache(0);

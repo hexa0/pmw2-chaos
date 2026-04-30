@@ -2,6 +2,8 @@
 #include "util.h"
 #include "objects/debug_object.h"
 #include "objects/chaos_object.h"
+#include "objects/settings_object.h"
+#include "settings.c"
 
 void pre_sound_update()
 {
@@ -89,6 +91,7 @@ void create_inventory_hook() {
 	CreatePacInventory();
 	CreateDebugObject();
 	CreateChaosObject();
+	CreateSettingsObject();
 }
 
 void inject_create_inventory_hook() {
@@ -97,6 +100,23 @@ void inject_create_inventory_hook() {
 	assemble_jal_at(0x0017F3DC, (unsigned int)&create_inventory_hook);
 	// CreatePacInventory call in SetUpForLoadingScreen
 	// assemble_jal_at(0x00183D74, (unsigned int)&create_inventory_hook);
+}
+
+static const char* modSettingsText = "MOD SETTINGS";
+static const char* modSettingsTextJP = /* SJIS */ "モッド設定";
+
+void replace_screen_adjust_menu() {
+	pauseMainMenu[3][0] = (char*)modSettingsText;
+	pauseMainMenu[3][1] = (char*)modSettingsTextJP;
+	pauseMapMenu[3][0] = (char*)modSettingsText;
+	pauseMapMenu[3][1] = (char*)modSettingsTextJP;
+	pauseMazeMenu[3][0] = (char*)modSettingsText;
+	pauseMazeMenu[3][1] = (char*)modSettingsTextJP;
+	pauseMenu[3][0] = (char*)modSettingsText;
+	pauseMenu[3][1] = (char*)modSettingsTextJP;
+	
+	InitModSettings();
+	assemble_j_at((unsigned int)UpdateScreenMenu, (unsigned int)&ModSettingsMenu);
 }
 
 void fast_startup() {

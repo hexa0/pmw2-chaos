@@ -28,6 +28,32 @@ void call_SetFontScale(float scale) {
 	return;
 }
 
+void call_Font_SetSelectColor(float alpha) {
+	__asm__ __volatile__ (
+		"lwc1 $f12, %0\n"
+		"jal Font_SetSelectColor\n"
+		"nop\n"
+		:
+		: "m"(alpha)
+		: "$f12", "$31", "memory"
+	);
+
+	return;
+}
+
+void call_Font_SetNonSelectColor(float alpha) {
+	__asm__ __volatile__ (
+		"lwc1 $f12, %0\n"
+		"jal Font_SetNonSelectColor\n"
+		"nop\n"
+		:
+		: "m"(alpha)
+		: "$f12", "$31", "memory"
+	);
+
+	return;
+}
+
 void playSoundSymbol(char *symbol) {
 	soundPlay(soundFindSymbol(symbol));
 }

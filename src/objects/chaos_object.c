@@ -1,11 +1,9 @@
 #include "../game/pmw2lib.h"
 #include "../util.h"
-
-static float gRateDiviser = 1.0f;
-static float gDurationMultipler = 1.0f;
+#include "../settings.h"
 
 /// @brief at base difficulty we apply a new effect after so many seconds, this will be scaled with difficulty
-#define CHAOS_EFFECT_RATE 20.0f / gRateDiviser
+#define CHAOS_EFFECT_RATE 20.0f / gModSettings.chaosEffectRateDiviser
 #define CHAOS_SHOULD_APPLY !gPacManOnMap && !pacNoControl && !strncmp(gLoadedLevelRarName, "levels/forest1.rar", 19) == 0
 
 typedef struct chaos_object_s
@@ -447,7 +445,7 @@ BOOL ChaosObject_AddRandomEffect(chaos_object_t *obj)
 	float durationMax = (effect->durationMax <= -1.0f) ? effect->durationMin : effect->durationMax;
 
 	obj->activeEffectIds[obj->totalActiveEffects] = effectId;
-	obj->activeEffectExpirations[obj->totalActiveEffects] = obj->timer + (effect->durationMin + (frand() * (durationMax - effect->durationMin)));
+	obj->activeEffectExpirations[obj->totalActiveEffects] = obj->timer + ((effect->durationMin + (frand() * (durationMax - effect->durationMin))) * gModSettings.chaosEffectDurationMultipler);
 	obj->totalActiveEffects++;
 
 	effect->event(obj, effect_activate);

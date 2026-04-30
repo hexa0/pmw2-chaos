@@ -34,8 +34,8 @@ extern void FlushCache(int);
 typedef unsigned int BOOL;
 typedef unsigned char byte;
 
-#define true (BOOL)1;
-#define false (BOOL)0;
+#define true (BOOL)1
+#define false (BOOL)0
 
 typedef struct ACTIVESOUNDS
 {
@@ -75,6 +75,8 @@ extern void FontDefaults(void);
 
 extern void SetFontAlpha(float alpha);
 extern void SetFontColor(byte r, byte g, byte b);
+extern void Font_SetSelectColor(float alpha);
+extern void Font_SetNonSelectColor(float alpha);
 extern void SetFontGradientTopColor(int r, int g, int b, int a);
 extern void SetFontGradientBottomColor(int r, int g, int b, int a);
 extern void SetFontScale(float scale);
@@ -1577,6 +1579,8 @@ extern float GRAVITY;
 extern float gameTime;
 /// @brief same as gameTime but it tracks the value from last frame
 extern float oldGameTime;
+/// @brief starts counting at game startup
+extern float masterTime;
 extern float _engineSpeed;
 
 extern char gLoadedLevelRarName[75];
@@ -1687,5 +1691,25 @@ extern BOOL ScreenFaderFading(void);
 
 extern BOOL gPacManOnMap;
 extern BOOL pacNoControl;
+
+typedef struct dummy_struct_s
+{
+
+} dummy_struct_t;
+
+// this is supposed to take sceGsDBuffDc *db as an argument but we only need it for a hook so we haven't imported that struct yet
+extern int UpdateScreenMenu(dummy_struct_t *db);
+
+extern void Game_PopMainFuncs(void);
+extern void Menu_MakePadSounds(int padFlags);
+
+typedef char *DefMultiLanguageString[2];
+
+extern DefMultiLanguageString pauseMainMenu[6];
+extern DefMultiLanguageString pauseMapMenu[6];
+extern DefMultiLanguageString pauseMazeMenu[6];
+extern DefMultiLanguageString pauseMenu[6];
+
+extern int CurrentLanguage;
 
 #endif // GAME_H
