@@ -8,9 +8,9 @@ typedef struct settings_object_s
  
 } settings_object_t;
 
-char* const gameCinemaBuffer = (char*)0x583BF8;
-const char* cinema_en = "cinema.txt";
-const char* cinema_jp = "jcinema.txt";
+char* const cinema_txt = (char*)0x583BF8;
+const char* cinema_txt_en = "cinema.txt";
+const char* cinema_txt_jp = "jcinema.txt";
 
 void SettingsObject_Process(settings_object_t *obj)
 {
@@ -20,10 +20,10 @@ void SettingsObject_Process(settings_object_t *obj)
 
 		// absolute jcinema.txt
 		if (CurrentLanguage == 0) {
-			strcpy(gameCinemaBuffer, cinema_en);
+			strcpy(cinema_txt, cinema_txt_en);
 		}
 		else if (CurrentLanguage == 1) {
-			strcpy(gameCinemaBuffer, cinema_jp);
+			strcpy(cinema_txt, cinema_txt_jp);
 		}
 	}
 }
