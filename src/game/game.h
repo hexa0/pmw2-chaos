@@ -1577,6 +1577,9 @@ extern float GRAVITY;
 extern float gameTime;
 /// @brief same as gameTime but it tracks the value from last frame
 extern float oldGameTime;
+extern float _engineSpeed;
+
+extern char gLoadedLevelRarName[75];
 
 typedef enum DefPadState {
     PAD_ACTIVE=0,

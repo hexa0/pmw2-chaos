@@ -81,8 +81,8 @@ int DebugObject(OBJHEAD *hd, messageType message, void *data)
 			SetFontGradientBottomColor(180, 180, 0, 100);
 			call_SetFontScale(0.5);
 			SetFontAlignment(FONT_ALIGN_LEFT);
-			call_font_printf(0, 0, fmt((char[200]){0},
-				"\n\npacManObject %p\ndebugObject %p\nlowestYpos %s\nmotion.speed.y %s\nPMAction %s",
+			call_font_printf(0.02, 0.05, fmt((char[200]){0},
+				"pacManObject %p\ndebugObject %p\nlowestYpos %s\nmotion.speed.y %s\nPMAction %s",
 				&pacManObject,
 				&obj,
 				float_to_str((char[16]){0}, pacManObject->lowestYpos, 4),

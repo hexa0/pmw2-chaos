@@ -6,7 +6,7 @@ static float gDurationMultipler = 1.0f;
 
 /// @brief at base difficulty we apply a new effect after so many seconds, this will be scaled with difficulty
 #define CHAOS_EFFECT_RATE 20.0f / gRateDiviser
-#define CHAOS_SHOULD_APPLY !gPacManOnMap && !pacNoControl
+#define CHAOS_SHOULD_APPLY !gPacManOnMap && !pacNoControl && !strncmp(gLoadedLevelRarName, "levels/forest1.rar", 19) == 0
 
 typedef struct chaos_object_s
 {
@@ -245,10 +245,24 @@ void ChaosObject_Effect_HighGravity(chaos_object_t *obj, randomEffectMessage mes
 	}
 }
 
+void ChaosObject_Effect_DoubleGameSpeed(chaos_object_t *obj, randomEffectMessage message) {
+	switch (message) {
+		case effect_activate:
+			_engineSpeed = 2.0f;
+			break;
+		case effect_deactive:
+			_engineSpeed = 1.0f;
+			break;
+		default:
+			break;
+	}
+}
+
 #define EFFECT_GROUP_NONE 0
 #define EFFECT_GROUP_SPEED 1
 #define EFFECT_GROUP_SIZE 2
 #define EFFECT_GROUP_GRAVITY 3
+#define EFFECT_GROUP_GAMESPEED 4
 
 static const chaos_effect_t gChaosEffects[] = {
 	{
@@ -256,113 +270,122 @@ static const chaos_effect_t gChaosEffects[] = {
 		.name = "Whacked Controls",
 		.group = EFFECT_GROUP_NONE,
 		.weight = 0.7f,
-		.durationMin = 20.0f,
-		.durationMax = 35.0f
+		.durationMin = 15.0f,
+		.durationMax = 28.0f
 	},
 	{
 		.event = ChaosObject_Effect_Invisible,
 		.name = "Invisible",
 		.group = EFFECT_GROUP_NONE,
 		.weight = 1.0f,
-		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.durationMin = 15.0f,
+		.durationMax = 90.0f
 	},
 	{
 		.event = ChaosObject_Effect_PaperPac,
 		.name = "Paper Pac",
 		.group = EFFECT_GROUP_NONE,
-		.weight = 1.0f,
+		.weight = 0.9f,
 		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.durationMax = 45.0f
 	},
 	{
 		.event = ChaosObject_Effect_PancakePac,
 		.name = "Pancake Pac",
 		.group = EFFECT_GROUP_NONE,
-		.weight = 0.4f,
+		.weight = 0.9f,
 		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.durationMax = 45.0f
 	},
 	{
 		.event = ChaosObject_Effect_PissUI,
 		.name = "Piss UI",
 		.group = EFFECT_GROUP_NONE,
-		.weight = 1.0f,
+		.weight = 0.9f,
 		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.durationMax = 65.0f
 	},
 	{
 		.event = ChaosObject_Effect_SlowSpeed,
 		.name = "Slow Speed",
 		.group = EFFECT_GROUP_SPEED,
-		.weight = 1.0f,
-		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.weight = 0.8f,
+		.durationMin = 10.0f,
+		.durationMax = 25.0f
 	},
 	{
 		.event = ChaosObject_Effect_FastSpeed,
 		.name = "Fast Speed",
 		.group = EFFECT_GROUP_SPEED,
 		// lowered because this causes ledge grabs to send you into the stratosphere
-		.weight = 0.7f,
-		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.weight = 0.575f,
+		.durationMin = 15.0f,
+		.durationMax = 30.0f
 	},
 	{
 		.event = ChaosObject_Effect_BackwardsSpeed,
 		.name = "Moonwalk",
 		.group = EFFECT_GROUP_SPEED,
 		.weight = 1.0f,
-		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.durationMin = 10.0f,
+		.durationMax = 30.0f
 	},
 	{
+		// TODO: possibly reduce fall damage for this effect
 		.event = ChaosObject_Effect_BigPacman,
 		.name = "BigPac",
 		.group = EFFECT_GROUP_SIZE,
-		.weight = 1.0f,
-		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.weight = 0.9f,
+		.durationMin = 10.0f,
+		.durationMax = 16.0f
 	},
 	{
 		.event = ChaosObject_Effect_UltraBigPacman,
 		.name = "UltraBigPac",
 		.group = EFFECT_GROUP_SIZE,
 		.weight = 0.7f,
-		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.durationMin = 10.0f,
+		.durationMax = 14.0f
 	},
 	{
 		.event = ChaosObject_Effect_UltraSmallPacman,
 		.name = "UltraSmallPac",
 		.group = EFFECT_GROUP_SIZE,
-		.weight = 0.7f,
-		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.weight = 0.5f,
+		.durationMin = 6.0f,
+		.durationMax = 16.0f
 	},
 	{
 		.event = ChaosObject_Effect_SmallPacman,
 		.name = "SmallPac",
 		.group = EFFECT_GROUP_SIZE,
-		.weight = 1.0f,
-		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.weight = 0.8f,
+		.durationMin = 8.0f,
+		.durationMax = 14.0f
 	},
 	{
 		.event = ChaosObject_Effect_LowGravity,
 		.name = "Low Gravity",
 		.group = EFFECT_GROUP_GRAVITY,
-		.weight = 1.0f,
-		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.weight = 1.1f,
+		.durationMin = 13.0f,
+		.durationMax = 17.0f
 	},
 	{
 		.event = ChaosObject_Effect_HighGravity,
 		.name = "High Gravity",
 		.group = EFFECT_GROUP_GRAVITY,
 		.weight = 1.0f,
-		.durationMin = 30.0f,
-		.durationMax = 35.0f
+		.durationMin = 10.0f,
+		.durationMax = 12.0f
+	},
+	{
+		.event = ChaosObject_Effect_DoubleGameSpeed,
+		.name = "Double Game Speed",
+		.group = EFFECT_GROUP_GAMESPEED,
+		.weight = 0.8f,
+		.durationMin = 10.0f,
+		.durationMax = 15.0f
 	}
 };
 
@@ -443,7 +466,7 @@ void ChaosObject_Process(chaos_object_t *obj)
 {
 	if (!ScreenFaderActive() && CHAOS_SHOULD_APPLY)
 	{
-		obj->timer = obj->timer + (gameTime - oldGameTime);
+		obj->timer = obj->timer + ((gameTime - oldGameTime) / _engineSpeed);
 
 		for (int i = 0; i < obj->totalActiveEffects; i++) {
 			int effectId = obj->activeEffectIds[i];
