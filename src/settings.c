@@ -73,6 +73,8 @@ static mod_menu_option_t gameExtraOptions[] = {
 		.type = OPTION_TOGGLE,
 		.boolValuePtr = &widescreenAspect
 	},
+	// TODO: at some point we need to be able to load custom assets in the mod
+	// once we can we need to include the original JP level scripts there so that dialogue displays correctly
 	{
 		.text = "English",
 		.textOn = "Japanese",
