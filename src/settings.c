@@ -16,9 +16,9 @@ typedef void (*button_callback_hndl)();
 
 struct mod_menu_option_s
 {
-	char* text;
-	char* textOn;
-	char* description;
+	DefMultiLanguageString text;
+	DefMultiLanguageString textOn;
+	DefMultiLanguageString description;
 	mod_menu_option_type type;
 	BOOL *boolValuePtr;
 	struct mod_menu_option_s* menuPtr;
@@ -48,16 +48,28 @@ void ApplyModSettings() {
 
 static mod_menu_option_t chaosModOptions[] = {
 	{
-		.text = "Random Effect Rate Modifier",
-		.description = "",
+		.text = {
+			"Random Effect Rate Modifier",
+			/* SJIS */ "ランダムコウカ ハッセイリツ"
+		},
+		.description = {
+			"Increases/Decreases how often\nrandom effects will be applied.",
+			/* SJIS */ "ランダムコウカの ハッセイヒン度を\nヘンコウします。"
+		},
 		.type = OPTION_SLIDER,
 		.sliderMin = 0.0f,
 		.sliderMax = 10.0f,
 		.sliderPtr = &gStagedModSettings.chaosEffectDurationMultipler
 	},
 	{
-		.text = "Random Effect Duration Modifier",
-		.description = "",
+		.text = {
+			"Random Effect Duration Modifier",
+			/* SJIS */ "ランダムコウカ ジゾクジカン"
+		},
+		.description = {
+			"Increases/Decreases how long\nrandom effects will last.",
+			/* SJIS */ "ランダムコウカの ジゾクジカンを\nヘンコウします。"
+		},
 		.type = OPTION_SLIDER,
 		.sliderMin = 0.0f,
 		.sliderMax = 10.0f,
@@ -67,18 +79,25 @@ static mod_menu_option_t chaosModOptions[] = {
 
 static mod_menu_option_t gameExtraOptions[] = {
 	{
-		.text = "4:3",
-		.textOn = "16:9",
-		.description = "Toggles aspect ratio.",
+		.text = { "4:3", "4:3" },
+		.textOn = { "16:9", "16:9" },
+		.description = {
+			"Toggles aspect ratio.",
+			/* SJIS */ "アスペクト比を 切り替えます。"
+		},
 		.type = OPTION_TOGGLE,
 		.boolValuePtr = &widescreenAspect
 	},
 	// TODO: at some point we need to be able to load custom assets in the mod
 	// once we can we need to include the original JP level scripts there so that dialogue displays correctly
+	// actually this might just be in the level rar on NTSC 2.0 under a different filename ill have to check when i get to it
 	{
-		.text = "English",
-		.textOn = "Japanese",
-		.description = "Toggles current language between\nEnglish/Japanese.",
+		.text = { "English", "" },
+		.textOn = { "", /* SJIS */ "ニホンゴ" },
+		.description = {
+			"Toggles current language between\nEnglish/Japanese.",
+			/* SJIS */ "ゲンゴを エィゴと ニホンゴで\nきりかえます。"
+		},
 		.type = OPTION_TOGGLE,
 		.boolValuePtr = &CurrentLanguage
 	}
@@ -86,15 +105,27 @@ static mod_menu_option_t gameExtraOptions[] = {
 
 static mod_menu_option_t rootModOptions[] = {
 	{
-		.text = "Chaos Edition Settings",
-		.description = "Adjust difficulty & more.",
+		.text = {
+			"Chaos Edition Settings",
+			/* SJIS */ "カオスエディション セッテイ"
+		},
+		.description = {
+			"Adjust difficulty & more.",
+			/* SJIS */ "ムズカシサなどを チョウセイします。"
+		},
 		.type = OPTION_MENU,
 		.menuPtr = chaosModOptions,
 		.menuSize = 2
 	},
 	{
-		.text = "Pacman World 2",
-		.description = "Adjust additional\nPac-Man World 2™ settings.",
+		.text = {
+			"Pacman World 2",
+			/* SJIS */ "パックマンワールド 2"
+		},
+		.description = {
+			"Adjust additional\nPac-Man World 2™ settings.",
+			/* SJIS */ "パックマンワールド 2の\nツイカセッテイを チョウセイします。"
+		},
 		.type = OPTION_MENU,
 		.menuPtr = gameExtraOptions,
 		.menuSize = 2
@@ -106,8 +137,14 @@ static mod_menu_option_t rootModOptions[] = {
 	// 	.menuSize = 0
 	// },
 	{
-		.text = "Apply Changes",
-		.description = "Press *D to apply changes.",
+		.text = {
+			"Apply Changes",
+			/* SJIS */ "セッテイを ホゾン"
+		},
+		.description = {
+			"Press *D to apply changes.",
+			/* SJIS */ "*D ボタンを オシテ テキヨウシマス。"
+		},
 		.type = OPTION_BUTTON,
 		.buttonCallbackPtr = ApplyModSettings
 	}
@@ -168,10 +205,10 @@ int ModSettingsMenu(dummy_struct_t *db) {
 
 			switch (option->type) {
 				case OPTION_TOGGLE:
-					call_font_printf(0.5f, currentHeight, *option->boolValuePtr ? option->textOn : option->text);
+					call_font_printf(0.5f, currentHeight, *option->boolValuePtr ? option->textOn[CurrentLanguage] : option->text[CurrentLanguage]);
 					break;
 				default:
-					call_font_printf(0.5f, currentHeight, option->text);
+					call_font_printf(0.5f, currentHeight, option->text[CurrentLanguage]);
 					break;
 			}
 		}
@@ -179,7 +216,7 @@ int ModSettingsMenu(dummy_struct_t *db) {
 		FontDefaults();
 		SetFontAlignment(FONT_ALIGN_CENTERCENTER);
 		SetFontWiggle(false);
-		call_font_printf(0.5f, 0.9f, currentOption->description);
+		call_font_printf(0.5f, 0.9f, currentOption->description[CurrentLanguage]);
 
 		// switch (currentOption->type) {
 		// 	case OPTION_MENU:

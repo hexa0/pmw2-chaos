@@ -12,16 +12,17 @@ import re
 import sys
 
 def to_sjis_hex(match):
-    sjis_bytes = match.group(1).encode('shift_jis', errors='replace')
-    return '\"{}\"'.format(''.join(f'\\\\x{b:02x}' for b in sjis_bytes))
+	content = match.group(1).replace('\\\\n', '\n')
+	sjis_bytes = content.encode('shift_jis', errors='replace')
+	return '\"{}\"'.format(''.join(f'\\\\x{b:02x}' for b in sjis_bytes))
 
 with open('.tmp/main.i', 'r') as f:
-    code = f.read()
+	code = f.read()
 
 processed = re.sub(r'/\* SJIS \*/\s*\"([^\"]+)\"', to_sjis_hex, code)
 
 with open('.tmp/main.c', 'w') as f:
-    f.write(processed)
+	f.write(processed)
 "
 
 mips64r5900el-ps2-elf-gcc -c .tmp/main.c -march=r5900 -O2 -fno-asynchronous-unwind-tables -fno-exceptions -fno-common -ffreestanding -D_EE

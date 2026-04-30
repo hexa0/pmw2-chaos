@@ -1703,6 +1703,7 @@ extern int UpdateScreenMenu(dummy_struct_t *db);
 extern void Game_PopMainFuncs(void);
 extern void Menu_MakePadSounds(int padFlags);
 
+/// @brief English (0) / Japanese (1)
 typedef char *DefMultiLanguageString[2];
 
 extern DefMultiLanguageString pauseMainMenu[6];
