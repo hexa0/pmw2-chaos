@@ -88,9 +88,6 @@ static mod_menu_option_t gameExtraOptions[] = {
 		.type = OPTION_TOGGLE,
 		.boolValuePtr = &widescreenAspect
 	},
-	// TODO: at some point we need to be able to load custom assets in the mod
-	// once we can we need to include the original JP level scripts there so that dialogue displays correctly
-	// actually this might just be in the level rar on NTSC 2.0 under a different filename ill have to check when i get to it
 	{
 		.text = { "English", "" },
 		.textOn = { "", /* SJIS */ "ニホンゴ" },

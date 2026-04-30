@@ -17,6 +17,7 @@ extern int sprintf (char *__restrict __s, const char *__restrict __format, ...);
 extern float sinf(float x);
 extern float cosf(float x);
 extern int strcmp(char *__s1, char *__s2);
+extern char* strcpy(char *__dest, const char *__src);
 extern int strncmp(char *__s1, char *__s2, unsigned int __n);
 extern void srand(unsigned int seed);
 extern int rand(void);
