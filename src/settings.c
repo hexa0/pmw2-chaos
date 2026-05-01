@@ -42,6 +42,9 @@ void ApplyModSettings() {
 	gStagedModSettings.currentLanguage = CurrentLanguage;
 	
 	gModSettings = gStagedModSettings;
+
+	svGameCurrent.UserPreference.CurrentLanguage = gModSettings.currentLanguage;
+
 	inModSettingsMenu = false;
 	Game_PopMainFuncs();
 }

@@ -1,0 +1,198 @@
+#include <stdio.h>
+
+/// @brief executes the mod
+extern void RunMod(int isCWriter);
+
+extern void Game_Init(void);
+extern void Game_DoShell(void);
+extern void Level_Init(void);
+
+#ifndef IS_CWRITER
+	// extern int printf(char *fmt, ...);
+	extern int sceOpen(const char *filename, int flag);
+	unsigned int sceRead(int fd, void *buf, int size);
+	extern int sceClose(int fd);
+	extern unsigned int sceLseek(int fd, int offset, int whence);
+#endif
+
+extern void FlushCache(int);
+
+#include "screen.c"
+
+#ifdef IS_CWRITER
+	#include <libmc.h>
+	#include <loadfile.h>
+	#include <fcntl.h>
+	#include <string.h>
+
+	static sceMcTblGetDir mc_dir[64] __attribute__((aligned(64)));
+
+	void list_mc_files() {
+		int num_entries;
+		int type, free, format;
+		int ret;
+
+		printf("Scanning mc0:/ ...\n");
+
+		do {
+			mcGetInfo(0, 0, &type, &free, &format);
+			mcSync(0, NULL, &ret);
+			if (type == 0) printf("Waiting for card...\n");
+		} while (type == 0);
+
+		printf("Card detected: Type %d, Format %d\n", type, format);
+
+		memset(mc_dir, 0, sizeof(mc_dir));
+
+		mcSync(0, NULL, &ret);
+
+		mcGetDir(0, 0, "BASLUS-20224/*", 0, 64, mc_dir);
+		mcSync(0, NULL, &num_entries);
+
+		if (num_entries < 0) {
+			printf("mcGetDir failed: %d\n", num_entries);
+			return;
+		}
+
+		printf("Found %d entries:\n", num_entries);
+
+		for (int i = 0; i < num_entries; i++) {
+			char *type = (mc_dir[i].AttrFile & 0x10) ? "FILE" : "DIR";
+			
+			printf("[%s] %s - %u bytes\n", 
+				type, 
+				(char*)mc_dir[i].EntryName, 
+				(unsigned int)mc_dir[i].FileSizeByte
+			);
+		}
+	}
+
+	static unsigned char mc_chunk[1024] __attribute__((aligned(64)));
+#endif
+
+void init() {
+
+	ShowLoad();
+
+	#ifdef IS_CWRITER
+		int type, free, format, ret;
+
+		mcInit(MC_TYPE_MC);
+		mcSync(0, NULL, &ret);
+
+		int fd = -1;
+		int size;
+		char* file = "BASLUS-20224/MOD.BIN";
+
+		// list_mc_files();
+		// mcSync(0, NULL, &fd);
+
+		do {
+			mcGetInfo(0, 0, &type, &free, &format);
+			mcSync(0, NULL, &ret);
+			if (type == 0) printf("waiting for card...\n");
+		} while (type == 0);
+
+		printf("card detected: type %d, format %d\n", type, format);
+
+		printf("moving directories\n");
+		mcChdir(0, 0, "/", NULL);
+		mcSync(0, NULL, &ret);
+
+		printf("reading %s\n", file);
+
+		mcOpen(0, 0, file, O_RDONLY);
+		mcSync(0, NULL, &fd);
+
+		printf("read %s got %d\n", file, fd);
+
+		if (fd >= 0) {
+			size = mcSeek(fd, 0, SEEK_END);
+			mcSync(0, NULL, &size);
+			mcSeek(fd, 0, SEEK_SET);
+			mcSync(0, NULL, NULL);
+
+			printf("read %d bytes from %s\n", size, file);
+
+			for(int i = 0; i < 1000; i++) { __asm__ volatile("nop"); }
+
+			int remaining = size;
+
+			unsigned char* dest = (unsigned char*)0x01F00000;
+			int total_read = 0;
+
+			while (remaining > 0) {
+				int to_read = (remaining > 1024) ? 1024 : remaining;
+
+				int actual_read = -1;
+				
+				mcRead(fd, mc_chunk, to_read);
+				mcSync(0, NULL, &actual_read);
+
+				if (actual_read <= 0) {
+					printf("read error (%d) (sync: %d) at offset %d\n", actual_read, ret, total_read);
+					mcClose(fd);
+					ShowReadError();
+					return;
+				}
+
+			
+				for (int i = 0; i < actual_read; i++) {
+					dest[total_read + i] = mc_chunk[i];
+				}
+
+				total_read += actual_read;
+				remaining -= actual_read;
+			
+				printf("write: %d/%d\n", total_read, size);
+			}
+
+			mcClose(fd);
+			mcSync(0, NULL, NULL);
+
+			FlushCache(0);
+			FlushCache(2);
+
+			while (1) {
+
+			}
+
+			RunMod(1);
+		} else {
+			ShowReadError();
+		}
+	#endif
+
+	#ifndef IS_CWRITER
+		char* file = "host:mod.bin";
+		
+		int fd = sceOpen(file, 00);
+
+		if (fd >= 0) {
+
+			int size = sceLseek(fd, 0, 2);
+			sceLseek(fd, 0, 0);
+
+			sceRead(fd, (void*)0x01F00000, size);
+			sceClose(fd);
+
+			printf("read %d bytes from %s\n", size, file);
+
+			while (1) {
+
+			}
+			
+			// invalidate EE/data cache
+			FlushCache(0);
+			FlushCache(2);
+
+			printf("executing\n");
+			RunMod(0);
+
+			printf("running game\n");
+		}
+		else {
+			ShowReadError();
+		}
+	#endif
+}

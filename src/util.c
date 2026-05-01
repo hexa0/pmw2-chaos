@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <stdlib.h>
 #include "game/pmw2lib.h"
 
 /// @brief assembles and writes a JAL instruction at the specified address

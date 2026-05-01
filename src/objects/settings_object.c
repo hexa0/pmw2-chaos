@@ -1,6 +1,7 @@
 #include "../game/pmw2lib.h"
 #include "../util.h"
 #include "../settings.h"
+#include <string.h>
 
 typedef struct settings_object_s
 {
@@ -12,11 +13,11 @@ char* const cinema_txt = (char*)0x583BF8;
 const char* cinema_txt_en = "cinema.txt";
 const char* cinema_txt_jp = "jcinema.txt";
 
-void SettingsObject_Process(settings_object_t *obj)
+void SettingsObject_Update(settings_object_t *obj)
 {
 	if (!inModSettingsMenu) {
 		widescreenAspect = gModSettings.widescreen;
-		CurrentLanguage = gModSettings.currentLanguage;
+		CurrentLanguage = svGameCurrent.UserPreference.CurrentLanguage;
 
 		// absolute jcinema.txt
 		if (CurrentLanguage == 0) {
@@ -34,8 +35,14 @@ int SettingsObject(OBJHEAD *hd, messageType message, void *data)
 
 	switch (message)
 	{
+		case msg_init:
+			// this fixes loading a save set to JP while the menu was on english
+			// otherwise it tries to load cinema instead of jcinema
+			// which would be absolutely NOT jcinema
+			SettingsObject_Update(obj);
+			break;
 		case msg_processFrame:
-			SettingsObject_Process(obj);
+			SettingsObject_Update(obj);
 			break;
 		default:
 			break;

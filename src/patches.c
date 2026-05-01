@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "game/pmw2lib.h"
 #include "util.h"
 #include "objects/debug_object.h"
@@ -15,11 +17,15 @@ void pre_sound_update()
 		// i assume since the streaming is hard coded it doesn't ever set status to 1
 		// so we need to manually skip those 2 voices
 
-		// we have to strncmp here since the fallback error sound is otherwise muted if the sound symbol is not loaded from the current sound bank
-		// since we check for SND_REVUP directly if other sounds have changing pitches we'd need to account for them here too
-		// a better patch would be to make soundStop set voll and volr to 0, but im too lazy for that
-		if (active_sounds[i].status == 0 && i > 1 && strncmp(active_sounds[i].name, "SND_REVUP", 9) == 0)
+		if (active_sounds[i].status == 0 && i > 1)
 		{
+			// if the ID is 5 we only fix it if its name is SND_REVUP
+			// error sounds go to channel 5 so this catches that
+			// a better solution would be to hook soundStop to fix this bug though
+			if (i == 5 && strncmp(active_sounds[i].name, "SND_REVUP", 9) == 1) {
+				continue;
+			}
+
 			active_sounds[i].voll = 0;
 			active_sounds[i].volr = 0;
 		}
@@ -82,12 +88,8 @@ void patch_out_sync_padding() {
 	stub_func_at((unsigned int)&GiveTimeToPADforCALIBRATION);
 }
 
-void fast_game_start() {
-	Game_Init();
-	Game_DoShell();
-}
-
 void create_inventory_hook() {
+	printf("creating objects\n");
 	CreatePacInventory();
 	CreateDebugObject();
 	CreateChaosObject();
@@ -112,15 +114,13 @@ void replace_screen_adjust_menu() {
 	pauseMapMenu[3][1] = (char*)modSettingsTextJP;
 	pauseMazeMenu[3][0] = (char*)modSettingsText;
 	pauseMazeMenu[3][1] = (char*)modSettingsTextJP;
+	pauseArcadeMenu[3][0] = (char*)modSettingsText;
+	pauseArcadeMenu[3][1] = (char*)modSettingsTextJP;
+	pauseArcadeGameNoMusicMenu[2][0] = (char*)modSettingsText;
+	pauseArcadeGameNoMusicMenu[2][1] = (char*)modSettingsTextJP;
 	pauseMenu[3][0] = (char*)modSettingsText;
 	pauseMenu[3][1] = (char*)modSettingsTextJP;
 	
 	InitModSettings();
 	assemble_j_at((unsigned int)UpdateScreenMenu, (unsigned int)&ModSettingsMenu);
-}
-
-void fast_startup() {
-	printf("replacing Game_Start (skip intro fmvs)\n");
-	// Game_Start call in main
-	assemble_jal_at(0x002B79A8, (unsigned int)&fast_game_start);
 }

@@ -11,16 +11,21 @@
 ///////// standard headers /////////
 
 
-extern int vsprintf(unsigned char *str, char *fmt, unsigned long *ap);
-extern int printf(char *fmt, ...);
-extern int sprintf (char *__restrict __s, const char *__restrict __format, ...);
-extern float sinf(float x);
-extern float cosf(float x);
-extern int strcmp(char *__s1, char *__s2);
-extern char* strcpy(char *__dest, const char *__src);
-extern int strncmp(char *__s1, char *__s2, unsigned int __n);
-extern void srand(unsigned int seed);
-extern int rand(void);
+// extern int vsprintf(unsigned char *str, char *fmt, unsigned long *ap);
+// extern int printf(char *fmt, ...);
+// extern int sprintf (char *__restrict __s, const char *__restrict __format, ...);
+// extern float sinf(float x);
+// extern float cosf(float x);
+// extern int strcmp(char *__s1, char *__s2);
+// extern char* strcpy(char *__dest, const char *__src);
+// extern int strncmp(char *__s1, char *__s2, unsigned int __n);
+// extern void srand(unsigned int seed);
+// extern int rand(void);
+
+extern int sceOpen(const char *filename, int flag);
+extern int sceRead(int fd, void *buf, int size);
+extern int sceClose(int fd);
+extern int sceLseek(int fd, int offset, int whence);
 
 
 /*	Flush the EE instruction cache
@@ -60,7 +65,7 @@ extern active_sounds_t active_sounds[ACTIVE_SOUNDS_SIZE];
 
 extern void soundUpdate(void);
 
-/// @brief initializes the global ctors in the base game via __do_global_ctors, we inject our hooks after this
+/// @brief initializes the global ctors in the base game via __do_global_ctors
 extern void __main(void);
 
 /*	Writes formatted string to the screen at the specified coords
@@ -1710,8 +1715,94 @@ typedef char *DefMultiLanguageString[2];
 extern DefMultiLanguageString pauseMainMenu[6];
 extern DefMultiLanguageString pauseMapMenu[6];
 extern DefMultiLanguageString pauseMazeMenu[6];
+extern DefMultiLanguageString pauseArcadeMenu[6];
+extern DefMultiLanguageString pauseArcadeGameNoMusicMenu[4];
 extern DefMultiLanguageString pauseMenu[6];
 
 extern int CurrentLanguage;
+
+struct DefTime {
+    char day;
+    char hour;
+    char min;
+    byte field3_0x3;
+    float sec;
+};
+
+typedef enum l_kind {
+    NOT_ENOUGH=0,
+    ALL_GOTTEN=1,
+    NONE_TO_BEGIN_WITH=2
+} l_kind;
+
+typedef struct LevelSaveData_Struct {
+    BOOL opened;
+    BOOL levelCompleted;
+    BOOL justCompleted;
+    float bestTime;
+    int score;
+    int highScore;
+    short unsigned int fruitsInLevel[6];
+    short unsigned int fruitsTotal[6];
+    enum l_kind fruitsFound[6];
+    enum l_kind coinsGotten[10];
+    short unsigned int dotsInLevel;
+    short unsigned int dotsTotal;
+    enum l_kind dotsFound;
+    unsigned char completePercent;
+    byte field14_0x79;
+    byte field15_0x7a;
+    byte field16_0x7b;
+    struct DefTime PlayTime;
+    unsigned char StartingSpecialEffect;
+    byte field19_0x85;
+    byte field20_0x86;
+    byte field21_0x87;
+} LevelSaveData;
+
+struct DefUserPreference {
+    float soundVolume;
+    float musicVolume;
+    char currentMode;
+    byte field3_0x9;
+    byte field4_0xa;
+    byte field5_0xb;
+    int CurrentLanguage;
+    BOOL pad_motor_pause;
+    unsigned int screenX;
+    unsigned int screenY;
+    unsigned int brightness;
+};
+
+typedef struct SV_GAME_VARS {
+    BOOL used;
+    int slotno;
+    unsigned char Arcade[5120];
+    int cinemaObjStateFlag[55];
+    float bestTimeModeTime[50];
+    int curPosOnMap;
+    BOOL bootFound[4];
+    int lives;
+    int totalScore;
+    float health;
+    float maxhealth;
+    struct DefTime totalPlayTime;
+    int unused[6];
+    int coins;
+    short unsigned int cheatOpen;
+    short unsigned int arcadeExplained;
+    BOOL pacvillageExplained;
+    BOOL spookyDefeated;
+    BOOL mazeOpen[15];
+    int lastCompleteLevelID;
+    LevelSaveData levelSaveData[50];
+    struct DefUserPreference UserPreference;
+    char CheckSum;
+    char dummy[3];
+} SV_GAME_VARS;
+
+extern SV_GAME_VARS svGameCurrent;
+extern SV_GAME_VARS svGamePerm;
+extern SV_GAME_VARS svGameCurrentAtLastCheckPoint;
 
 #endif // GAME_H

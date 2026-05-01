@@ -2,9 +2,17 @@
 #include "../util.h"
 #include "../settings.h"
 
+int IsExcludedLevel() {
+	if (strncmp(gLoadedLevelRarName, "levels/forest1.rar", 18) == 0) return 1;
+	if (strncmp(gLoadedLevelRarName, "levels/arcadint.rar", 19) == 0) return 1;
+	if (strncmp(gLoadedLevelRarName, "levels/maze", 11) == 0) return 1;
+
+	return 0;
+}
+
 /// @brief at base difficulty we apply a new effect after so many seconds, this will be scaled with difficulty
 #define CHAOS_EFFECT_RATE 20.0f / gModSettings.chaosEffectRateDiviser
-#define CHAOS_SHOULD_APPLY !gPacManOnMap && !pacNoControl && !strncmp(gLoadedLevelRarName, "levels/forest1.rar", 19) == 0
+#define CHAOS_SHOULD_APPLY !gPacManOnMap && !pacNoControl && !IsExcludedLevel()
 
 typedef struct chaos_object_s
 {

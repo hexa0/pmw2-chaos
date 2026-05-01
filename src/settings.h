@@ -1,3 +1,5 @@
+#include <string.h>
+
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
@@ -15,7 +17,7 @@ static BOOL inModSettingsMenu;
 int InitModSettings() {
 	gModSettings.chaosEffectDurationMultipler = 1.0f;
 	gModSettings.chaosEffectRateDiviser = 1.0f;
-	gModSettings.currentLanguage = 0;
+	gModSettings.currentLanguage = svGameCurrent.UserPreference.CurrentLanguage;
 	gModSettings.widescreen = false;
 
 	gStagedModSettings = gModSettings;
