@@ -61,7 +61,7 @@ void stage2() {
 	printf("ws2\n");
 	ShowLoad();
 
-	char* file = "host:mod.bin";
+	char* file = "host:netdata/mod/mod.bin";
 	
 	int fd = sceOpen(file, 00);
 
