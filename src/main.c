@@ -9,64 +9,137 @@ void LockEEForMS(int ms) {
     }
 }
 
-void RunMod(BOOL isConsole) {
-	scr_clear();
-	scr_printf("Pac-Man World 2 (Chaos Edition)\n");
+static const char* slus_path = "cdrom0:\\SLUS_202.24;1";
 
-	if (isConsole) {
-		scr_printf("looking for restore.bin\n");
+typedef struct vfs_entry_s {
+    char name[16];
+    unsigned int size;
+    unsigned int offset;
+	unsigned char cksum;
+} vfs_entry_t;
 
-		scr_printf("trying host:restore.bin\n");
-		char* r_file = "host:restore.bin";
-		int rfd = sceOpen(r_file, 0);
+#define VFS_OFFSET 5242880
 
-		if (rfd < 0) {
-			// this won't work, we need to use mass once we get that working
-			scr_printf("trying mc0:PMW2/RESTORE.BIN\n");
+void log_scr(const char *format, ...) {
+    static char buffer[512];
+    va_list args;
 
-			r_file = "mc0:PMW2/RESTORE.BIN";
-			rfd = sceOpen(r_file, 0);
-		}
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
 
-		if (rfd >= 0) {
-			int size = sceLseek(rfd, 0, 2);
-			sceLseek(rfd, 0, 0);
+    scr_printf("%s", buffer);
+    printf("%s", buffer);
+}
 
-			scr_printf("restoring %d bytes\n", size);
-			sceRead(rfd, (void*)0x45ad10, size);
-			sceClose(rfd);
-		}
-		else {
-			scr_printf("restore.bin is absent, now exiting");
-			LockEEForMS(100);
-			scr_printf("!");
-			LockEEForMS(100);
-			scr_printf("!");
-			LockEEForMS(100);
-			scr_printf("!");
-			LockEEForMS(10000);
-			return;
-		}
-	}
-	
-	scr_printf("injecting hooks\n");
+void Inject(BOOL isConsole) {
+	log_scr("injecting hooks\n");
 
 	inject_pre_sound_update();
 	// inject_no_fmv();
-	// fast_startup();
+	// inject_fast_startup_hook();
+
 	// inject_level_update_hook();
 	// inject_world_render_hook();
-	patch_out_sync_padding();
+	if (!isConsole) {
+		patch_out_sync_padding();
+		inject_host_fs();
+	}
+
 	inject_create_inventory_hook();
 	replace_screen_adjust_menu();
 
-	scr_printf("flushing EE cache\n");
+	log_scr("flushing EE cache\n");
 	FlushCache(0);
-	scr_printf("flushing data cache\n");
+	log_scr("flushing data cache\n");
 	FlushCache(2);
+}
 
-	scr_printf("run Game_Init\n");
-	Game_Init();
-	scr_printf("run Game_DoShell\n");
-	Game_DoShell();
+void RunMod(BOOL isConsole) {
+	scr_clear();
+	log_scr("Pac-Man World 2 (Chaos Edition)\n");
+
+	if (isConsole) {
+		log_scr("using console loader\n");
+		int fd = sceOpen(slus_path, 0x0001);
+
+		unsigned int total_entries = 0;
+		vfs_entry_t vfs_table[16];
+
+		if (fd >= 0) {
+			log_scr("successfully got handle to %s (%d)\n", slus_path, fd);
+
+			sceLseek(fd, VFS_OFFSET, 0);
+			sceRead(fd, &total_entries, 4);
+			sceRead(fd, vfs_table, sizeof(vfs_entry_t) * 16);
+
+			log_scr("vfs at 0x%00X has %d entries\n", VFS_OFFSET, total_entries);
+
+			for (int i = 0; i < total_entries; i++) {
+				vfs_entry_t* entry = &vfs_table[i];
+				log_scr("%s at 0x%00X (%d bytes)\n", entry->name, entry->offset, entry->size);
+			}
+
+			for (int i = 0; i < total_entries; i++) {
+				vfs_entry_t* entry = &vfs_table[i];
+
+				if (strcmp(entry->name, "RESTORE.BIN") == 0) {
+					log_scr("reading %s into memory\n", entry->name);
+
+					sceLseek(fd, entry->offset, 0);
+					sceRead(fd, (void*)0x45ad10, entry->size);
+
+					log_scr("flushing EE/data caches\n");
+
+					FlushCache(0);
+					FlushCache(2);
+
+					log_scr("closing handle %d to %s\n", fd, slus_path);
+
+					sceClose(fd);
+
+					log_scr("verifying\n");
+
+					unsigned char actual_cksum = 0;
+					unsigned char* ptr = (unsigned char*)0x45ad10;
+
+					for (unsigned int i = 0; i < entry->size; i++) {
+						actual_cksum += ptr[i];
+					}
+
+					if (actual_cksum != entry->cksum) {
+						log_scr("checksum error, expected \"%00X\" got \"%00X\"\n", entry->cksum, actual_cksum);
+
+						while (1);
+					}
+
+					log_scr("checksum \"%00X\" is valid\n", entry->cksum);
+
+					Inject(isConsole);
+
+					LockEEForMS(7000);
+
+					log_scr("jumping to 0x002B78C0\n");
+
+					LockEEForMS(1000);
+
+					__asm__ volatile (
+						"la $v0, 0x002B78C0\n"
+						"jr $v0\n"
+						"nop\n"
+					);
+				}
+			}
+
+			log_scr("RESTORE.BIN is absent from the VFS");
+			while (1);
+		}
+	}
+	else {
+		log_scr("using pnach loader\n");
+		Inject(false);
+
+		log_scr("booting\n");
+		fast_startup_hook();
+	}
 }

@@ -5,8 +5,8 @@
 
 #define GAME_CRC "E7EA3288"
 #define GAME_ID_STR  "SLUS_202.24"
-#define CODE_CAVE_ADDR 0x01E00000
-#define HOOK_CALL_ADDR 0x002B79A8
+#define WRITER_CODE_CAVE_ADDR 0x0009F000
+#define HOOK_CALL_ADDR 0x002B7870
 
 #define TOTAL_SYMBOLS 12176
 
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 	fprintf(f_pnach, "// code\n");
 
     uint32_t word;
-    uint32_t current_addr = CODE_CAVE_ADDR;
+    uint32_t current_addr = WRITER_CODE_CAVE_ADDR;
 
     while (fread(&word, 4, 1, bin) == 1) {
         const char* collision = GetCollision(current_addr);
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
     fclose(f_pnach);
     fclose(f_cht);
 
-    printf("created patches for: \n%s\n%s\nspace: 0x%08x -> 0x%08x\n", pnach_name, cht_name, CODE_CAVE_ADDR, current_addr);
+    printf("created patches for: \n%s\n%s\nspace: 0x%08x -> 0x%08x\n", pnach_name, cht_name, WRITER_CODE_CAVE_ADDR, current_addr);
 
     return 0;
 }

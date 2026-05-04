@@ -155,11 +155,26 @@ void ChaosObject_Effect_SlowSpeed(chaos_object_t *obj, randomEffectMessage messa
 	}
 }
 
+static FVEC lastPacmanPosition;
+
 /// @brief makes pacman walk fast
 void ChaosObject_Effect_FastSpeed(chaos_object_t *obj, randomEffectMessage message) {
 	switch (message) {
 		case effect_activate:
 			pacManGlobalMovementTweak = 2.0f;
+			break;
+		case effect_update:
+			if (pacManObject->Head.pos.w != 0.0f || pacManObject->motion.speed.x > 4.0f || pacManObject->motion.speed.x < -4.0f || pacManObject->motion.speed.y > 4.0f || pacManObject->motion.speed.y < -4.0f || pacManObject->motion.speed.z > 4.0f || pacManObject->motion.speed.z < -4.0f) {
+				pacManObject->Head.pos = lastPacmanPosition;
+				pacManObject->motion.speed.x = 0.0f;
+				pacManObject->motion.speed.y = 0.0f;
+				pacManObject->motion.speed.z = 0.0f;
+				printf("[FastSpeed] prevented pacman from entering the NaN zone\n");
+			}
+			else {
+				lastPacmanPosition = pacManObject->Head.pos;
+			}
+
 			break;
 		case effect_deactive:
 			pacManGlobalMovementTweak = 1.0f;
@@ -323,8 +338,8 @@ static const chaos_effect_t gChaosEffects[] = {
 		.event = ChaosObject_Effect_FastSpeed,
 		.name = "Fast Speed",
 		.group = EFFECT_GROUP_SPEED,
-		// lowered because this causes ledge grabs to send you into the stratosphere
-		.weight = 0.575f,
+		// a little glitchy sometimes
+		.weight = 0.7f,
 		.durationMin = 15.0f,
 		.durationMax = 30.0f
 	},
@@ -456,6 +471,7 @@ BOOL ChaosObject_AddRandomEffect(chaos_object_t *obj)
 	obj->activeEffectExpirations[obj->totalActiveEffects] = obj->timer + ((effect->durationMin + (frand() * (durationMax - effect->durationMin))) * gModSettings.chaosEffectDurationMultipler);
 	obj->totalActiveEffects++;
 
+	printf("activating %s\n", effect->name);
 	effect->event(obj, effect_activate);
 
 	return true;
@@ -545,6 +561,7 @@ void ChaosObject_Delete(chaos_object_t *obj)
 	// deactivate all effects when the chaosObject is removed
 	for (int i = 0; i < obj->totalActiveEffects; i++) {
 		int id = obj->activeEffectIds[i];
+		printf("deactivating %s\n", gChaosEffects[id].name);
 		gChaosEffects[id].event(obj, effect_deactive);
 	}
 }

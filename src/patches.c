@@ -85,14 +85,18 @@ void inject_world_render_hook()
 }
 
 void patch_out_sync_padding() {
+	printf("removing CRT sync padding?\n");
 	stub_func_at((unsigned int)&GiveTimeToPADforCALIBRATION);
 }
 
 void create_inventory_hook() {
-	printf("creating objects\n");
+	printf("CreatePacInventory\n");
 	CreatePacInventory();
+	printf("CreateDebugObject\n");
 	CreateDebugObject();
+	printf("CreateChaosObject\n");
 	CreateChaosObject();
+	printf("CreateSettingsObject\n");
 	CreateSettingsObject();
 }
 
@@ -102,6 +106,18 @@ void inject_create_inventory_hook() {
 	assemble_jal_at(0x0017F3DC, (unsigned int)&create_inventory_hook);
 	// CreatePacInventory call in SetUpForLoadingScreen
 	// assemble_jal_at(0x00183D74, (unsigned int)&create_inventory_hook);
+}
+
+void fast_startup_hook() {
+	// mimics Game_Start but skips the Game_PlayMovie and Game_ShowLogos
+	Game_Init();
+	Game_DoShell();
+}
+
+void inject_fast_startup_hook() {
+	printf("injecting create inventory hook\n");
+	// Game_Start call in main
+	assemble_jal_at(0x002B79A8, (unsigned int)&fast_startup_hook);
 }
 
 static const char* modSettingsText = "MOD SETTINGS";
@@ -123,4 +139,68 @@ void replace_screen_adjust_menu() {
 	
 	InitModSettings();
 	assemble_j_at((unsigned int)UpdateScreenMenu, (unsigned int)&ModSettingsMenu);
+}
+
+void _startstreaming_host(int fd, unsigned char *buffer, int size) {
+	printf("_startstreaming_host %d 0x%00X %d\n", fd, &buffer, size);
+
+	int bytesRead = sceRead(fd, buffer, size);
+
+	if (bytesRead < 0) {
+        printf("host streaming error: %d\n", fd);
+    }
+}
+
+void _closestream_host(int fd) {
+	printf("_closestream_host %d\n", fd);
+
+    if (fd >= 0) {
+        sceClose(fd);
+    }
+}
+
+// currently only get used for loading sound banks with our patches active since we don't use fixfordvd ourselves
+int fixfordvd_hook(char *dst, char *filename) {
+	sprintf(dst, "host:./netdata/%s", filename);
+	
+	printf("fixfordvd_hook %s\n", dst);
+}
+
+int _streamfilefrompc_host(char *filename, int *length) {
+	printf("_streamfilefrompc_host %s %d\n", filename, length);
+
+	char name[64];
+	sprintf(name, "host:netdata/%s", filename);
+    
+    int fd = sceOpen(name, 0x0001);
+
+    if (fd >= 0) {
+        *length = sceLseek(fd, 0, 2);
+        sceLseek(fd, 0, 0);
+    }
+	else {
+		// fixes loading screens stupidly relying on SCEECdSearchFile from the original code to resolve this stupidity
+		sprintf(name, "host:netdata/levels/%s", filename);
+
+		fd = sceOpen(name, 0x0001);
+
+		if (fd >= 0) {
+			*length = sceLseek(fd, 0, 2);
+			sceLseek(fd, 0, 0);
+		}
+		else {
+			printf("_streamfile_host error %s %d\n", name, fd);
+		}
+	}
+
+    return fd;
+}
+
+void inject_host_fs() {
+	printf("injecting host fs\n");
+
+	assemble_j_at((unsigned int)_streamfilefrompc, (unsigned int)&_streamfilefrompc_host);
+	assemble_j_at((unsigned int)_closestream, (unsigned int)&_closestream_host);
+	assemble_j_at((unsigned int)_startstreaming, (unsigned int)&_startstreaming_host);
+	assemble_j_at((unsigned int)fixfordvd, (unsigned int)&fixfordvd_hook);
 }

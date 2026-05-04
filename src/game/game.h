@@ -27,6 +27,68 @@ extern int sceRead(int fd, void *buf, int size);
 extern int sceClose(int fd);
 extern int sceLseek(int fd, int offset, int whence);
 
+extern int _streamfilefrompc(char *filename, int *length);
+extern void _closestream(int fp);
+extern void _startstreaming(int fp, unsigned char *buffer, int size);
+extern void makeDVDName(unsigned char *buffer, unsigned char *name);
+extern int fixfordvd(char *dst, char *filename);
+extern unsigned int ee_musicTransferNowait(int address, char *filename);
+extern int soundLoadBankStart(int zone, char *filename);
+
+extern void iopUnload(void);
+extern void iopStartUp(void);
+extern void soundInit(void);
+extern int musicStop(void);
+
+typedef enum eHost {
+	FILEHOST_UNIXDEV=0,
+	FILEHOST_PRODG=1,
+	FILEHOST_PROVIEW=2,
+	FILEHOST_DVD=3
+} eHost;
+
+typedef enum eHost HOST;
+
+// this is set to FILEHOST_DVD, but for host fs to work with sound this needs to be changed
+// when we dispace event 1 (which triggers iop_audioInit) the game passes the g_filehost to AUDIO.IRX
+// that then sets g_filehost in AUDIO.IRX
+// also AUDIO.IRX also has symbols which is awesome
+extern HOST g_filehost;
+
+// sets g_filehost to FILEHOST_DVD;
+extern void findfilehost();
+
+extern void* pma_AllocMem(unsigned int nSize, int nPool);
+extern void pma_FreeMem(int Mem);
+
+typedef struct sceSifDmaData {
+    unsigned int data;
+    unsigned int addr;
+    unsigned int size;
+    unsigned int mode;
+} sceSifDmaData;
+
+extern int sceSifSetDma(sceSifDmaData *dma, int count);
+extern int sceSifDmaStat(int id);
+extern void* sceSifAllocIopHeap(int size);
+extern int sceSifFreeIopHeap(void *ptr);
+
+typedef struct SOUNDBANK {
+    int numsounds;
+    int flags;
+    int echo_buffer;
+    int bank_address;
+    int echo_size;
+    int bank_size;
+    int pad[2];
+} SOUNDBANK;
+
+extern SOUNDBANK *soundbank[2];
+extern int soundStatus;
+
+extern short unsigned int ee_code;
+extern int IOP_Cnt;
+
 
 /*	Flush the EE instruction cache
 
@@ -64,9 +126,6 @@ typedef struct ACTIVESOUNDS
 extern active_sounds_t active_sounds[ACTIVE_SOUNDS_SIZE];
 
 extern void soundUpdate(void);
-
-/// @brief initializes the global ctors in the base game via __do_global_ctors
-extern void __main(void);
 
 /*	Writes formatted string to the screen at the specified coords
 	
@@ -113,6 +172,33 @@ extern BOOL GiveTimeToPADforCALIBRATION(void);
 
 extern void Game_Init(void);
 extern void Game_DoShell(void);
+
+typedef struct sceGsDBuffDc
+{
+
+} sceGsDBuffDc_dummy_t;
+
+typedef int (*DRAW_RTN)(sceGsDBuffDc_dummy_t *db);
+typedef int (*RENDER_VU1_FUNC)(sceGsDBuffDc_dummy_t *db);
+typedef int (*RENDER_VU1_TRANSPARENT_FUNC)(sceGsDBuffDc_dummy_t *db);
+
+extern void Game_AssignMainFuncs(DRAW_RTN pUpdateFunc, RENDER_VU1_FUNC pVU1Render, RENDER_VU1_TRANSPARENT_FUNC pVU1XParentRender);
+extern void Game_PushMainFuncs(void);
+extern void Game_PopMainFuncs(void);
+
+extern int drawPaused(sceGsDBuffDc_dummy_t *db);
+extern int DoCameraMenu(sceGsDBuffDc_dummy_t *db);
+extern int UpdateScreenMenu(sceGsDBuffDc_dummy_t *db);
+extern int UpdateSoundMenu(sceGsDBuffDc_dummy_t *db);
+extern int LangOpt(sceGsDBuffDc_dummy_t *db);
+extern int BrightnessOpt(sceGsDBuffDc_dummy_t *db);
+extern int VibOpt(sceGsDBuffDc_dummy_t *db);
+extern int DoSoundTest(sceGsDBuffDc_dummy_t *db);
+extern int DoMusicTest(sceGsDBuffDc_dummy_t *db);
+extern int drawWorld(sceGsDBuffDc_dummy_t *db);
+extern int CreditsOpt(sceGsDBuffDc_dummy_t *db);
+extern int SoundOpt(sceGsDBuffDc_dummy_t *db);
+extern int ScreenOpt(sceGsDBuffDc_dummy_t *db);
 
 typedef unsigned int tOFLG;
 
@@ -1698,15 +1784,6 @@ extern BOOL ScreenFaderFading(void);
 extern BOOL gPacManOnMap;
 extern BOOL pacNoControl;
 
-typedef struct dummy_struct_s
-{
-
-} dummy_struct_t;
-
-// this is supposed to take sceGsDBuffDc *db as an argument but we only need it for a hook so we haven't imported that struct yet
-extern int UpdateScreenMenu(dummy_struct_t *db);
-
-extern void Game_PopMainFuncs(void);
 extern void Menu_MakePadSounds(int padFlags);
 
 /// @brief English (0) / Japanese (1)
@@ -1804,5 +1881,10 @@ typedef struct SV_GAME_VARS {
 extern SV_GAME_VARS svGameCurrent;
 extern SV_GAME_VARS svGamePerm;
 extern SV_GAME_VARS svGameCurrentAtLastCheckPoint;
+
+extern ANIM_TPL* globalAnimArray[128];
+extern ANIM globalAnimArray2[128];
+extern ANIM_NODE globalAnimCtrls[194];
+extern ANIM_NODE globalAnimNodes[2800];
 
 #endif // GAME_H

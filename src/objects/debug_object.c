@@ -1,5 +1,6 @@
 #include "../game/pmw2lib.h"
 #include "../util.h"
+#include <string.h>
 
 typedef struct debug_object_s
 {
@@ -29,9 +30,83 @@ BOOL DebugToggle(BOOL *value, unsigned short currentButton, unsigned short oldBu
 	return false;
 }
 
+void IncreaseAnimScale(KEY_FRAME frames[], int count) {
+	if (count == 0) {
+		return;
+	}
+	
+	KEY_FRAME* firstFrame = &frames[0];
+
+	for (int i = 0; i < count; i++) {
+		KEY_FRAME* frame = &frames[i];
+		// KEY_FRAME* lastFrame = &frames[i == 0 ? 0 : i - 1];
+
+		frame->vx = firstFrame->vx;
+		frame->vy = firstFrame->vy;
+		frame->vz = firstFrame->vz;
+
+		// frame->vx = (lastFrame->vx - frame->vx) * 2.0f;
+		// frame->vy = (firstFrame->vy - frame->vy) * 2.0f;
+		// frame->vz = (lastFrame->vz - frame->vz) * 2.0f;
+	}
+}
+
 int DebugObject(OBJHEAD *hd, messageType message, void *data)
 {
 	debug_object_t *obj = (debug_object_t *)hd;
+
+	if (message == msg_init)
+	{
+
+		// globalAnimArray[1]->anim_node_tpls = globalAnimArray[32]->anim_node_tpls;
+
+		for (int i = 0; i < 128; i++) {
+			if (globalAnimArray[i]) {
+				ANIM_TPL* node = globalAnimArray[i];
+
+				// node->anim_node_tpls = globalAnimArray[32]->anim_node_tpls;
+
+				// printf("%d %s\n", i, node->name);
+
+				for (int j = 0; j < node->num_anim_node_tpls; j++) {
+					ANIM_NODE_TPL* anim_node = node->anim_node_tpls[j];
+
+					// for (int k = 0; k < anim_node->num_t_kframes; k++) {
+					// 	KEY_FRAME* frame = &anim_node->first_t_kframe[k];
+					// 	frame->vx += (frand() - 0.5f);
+					// 	frame->vy += (frand() - 0.5f);
+					// 	frame->vz += (frand() - 0.5f);
+					// }
+
+					// for (int k = 0; k < anim_node->num_r_kframes; k++) {
+					// 	KEY_FRAME* frame = &anim_node->first_r_kframe[k];
+					// 	frame->vx += (frand() - 0.5f);
+					// 	frame->vy += (frand() - 0.5f);
+					// 	frame->vz += (frand() - 0.5f);
+					// }
+				
+					// for (int k = 0; k < anim_node->num_s_kframes; k++) {
+					// 	KEY_FRAME* frame = &anim_node->first_s_kframe[k];
+					// 	frame->vx += (frand() - 0.5f);
+					// 	frame->vy += (frand() - 0.5f);
+					// 	frame->vz += (frand() - 0.5f);
+					// }
+
+					// for (int k = 0; k < anim_node->num_t_kframes; k++) {
+					// 	KEY_FRAME* frame = &anim_node->first_t_kframe[k];
+					// 	frame->vx *= 2.0f;
+					// 	frame->vy *= 2.0f;
+					// 	frame->vz *= 2.0f;
+					// }
+
+					// IncreaseAnimScale(anim_node->first_t_kframe, anim_node->num_t_kframes);
+					// IncreaseAnimScale(anim_node->first_s_kframe, anim_node->num_s_kframes);
+					// IncreaseAnimScale(anim_node->first_r_kframe, anim_node->num_r_kframes);
+				}
+				// globalAnimArray[i]->total_anim_time = 0.0f;
+			}
+		}
+	}
 
 	if (message == msg_render)
 	{

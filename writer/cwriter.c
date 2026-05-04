@@ -1,0 +1,162 @@
+#include <stdio.h>
+#include <stdarg.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+
+#include <loadfile.h>
+#include <kernel.h>
+#include <sifrpc.h>
+#include <debug.h>
+
+
+/// @brief executes the mod
+extern void RunMod(int isCWriter);
+
+extern void iopStartUp(void);
+
+extern void FlushCache(int);
+void log_scr(const char *format, ...) {
+    static char buffer[512]; // Static to save stack space
+    va_list args;
+
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
+    scr_printf("%s", buffer);
+    printf("%s", buffer);
+}
+
+extern int sceOpen(const char *filename, int flag);
+unsigned int sceRead(int fd, void *buf, int size);
+extern int sceClose(int fd);
+extern unsigned int sceLseek(int fd, int offset, int whence);
+
+// static unsigned int offsets[] = {5242880, 6291456, 7340032};
+// static const char* names[] = {"iomanX", "usbd", "usbhdfsd"};
+// void* buffers[3];
+// unsigned int lengths[3];
+
+static const char* slus_path = "cdrom0:\\SLUS_202.24;1";
+
+// void LoadInjectedIopDrivers(int fd) {
+// 	log("loading iop drivers\n");
+
+// 	unsigned char* ram_ptr = (unsigned char*)0x0009F000;
+
+// 	for (int i = 0; i < 3; i++) {
+// 		sceLseek(fd, offsets[i], 0);
+// 		sceRead(fd, &lengths[i], 4);
+		
+// 		buffers[i] = ram_ptr;
+// 		sceRead(fd, buffers[i], lengths[i]);
+		
+// 		ram_ptr += (lengths[i] + 15) & ~15;
+// 	}
+
+// 	sceClose(fd);
+
+// 	int ret;
+// 	FlushCache(0);
+
+// 	for (int i = 0; i < 3; i++) {
+// 		log("SifExecModuleBuffer:\ndriver %s (%d), offset %u ram_ptr %u size %u\n", names[i], i, offsets[i], buffers[i], lengths[i]);
+// 		int r = SifExecModuleBuffer(buffers[i], lengths[i], 0, NULL, &ret);
+// 		log("got %d\n", r);
+		
+// 		for(int j = 0; j < 500000; j++) { __asm__ volatile("nop"); }
+// 	}
+// }
+
+typedef struct vfs_entry_s {
+    char name[16];
+    unsigned int size;
+    unsigned int offset;
+	unsigned char cksum;
+} vfs_entry_t;
+
+#define VFS_OFFSET 5242880
+
+void cinit() {
+	iopStartUp();
+	
+	sceSifInitRpc(0);
+	init_scr();
+	log_scr("init PMW2 cwriter loader\n");
+
+	// int fd = sceOpen(slus_path, 0x0001);
+	// this actually loads now but our drivers are not able to read mass yet
+	// ill investigate this later or if someone smarter knows how to fix this
+	// though we are running after the game loads its own IOP drivers and also
+	// re-use the sceRead/Write/ETC functions from the game symbols, so that's
+	// probably our issue
+	
+	// LoadInjectedIopDrivers(fd);
+
+	int fd = sceOpen(slus_path, 0x0001);
+
+	unsigned int total_entries = 0;
+    vfs_entry_t vfs_table[16];
+
+	if (fd >= 0) {
+		log_scr("successfully got handle to %s (%d)\n", slus_path, fd);
+
+		sceLseek(fd, VFS_OFFSET, 0);
+		sceRead(fd, &total_entries, 4);
+		sceRead(fd, vfs_table, sizeof(vfs_entry_t) * 16);
+
+		log_scr("vfs at 0x%00X has %d entries\n", VFS_OFFSET, total_entries);
+
+		for (int i = 0; i < total_entries; i++) {
+			vfs_entry_t* entry = &vfs_table[i];
+			log_scr("%s at 0x%00X (%d bytes)\n", entry->name, entry->offset, entry->size);
+		}
+
+		for (int i = 0; i < total_entries; i++) {
+			vfs_entry_t* entry = &vfs_table[i];
+
+			if (strcmp(entry->name, "MOD.BIN") == 0) {
+				log_scr("reading %s into memory\n", entry->name);
+
+				sceLseek(fd, entry->offset, 0);
+				sceRead(fd, (void*)0x000A0000, entry->size);
+
+				log_scr("flushing EE/data caches\n");
+
+				FlushCache(0);
+				FlushCache(2);
+
+				log_scr("closing handle %d to %s\n", fd, slus_path);
+
+				sceClose(fd);
+
+				log_scr("verifying\n");
+
+				unsigned char actual_cksum = 0;
+				unsigned char* ptr = (unsigned char*)0x000A0000;
+
+				for (unsigned int i = 0; i < entry->size; i++) {
+					actual_cksum += ptr[i];
+				}
+
+				if (actual_cksum != entry->cksum) {
+					log_scr("checksum error, expected \"%00X\" got \"%00X\"\n", entry->cksum, actual_cksum);
+
+					while (1);
+				}
+
+				log_scr("checksum \"%00X\" is valid\n", entry->cksum);
+
+				log_scr("jumping exec to mod at 0x%00X\n", &RunMod);
+
+				RunMod(1);
+			}
+		}
+
+	}
+	else {
+		log_scr("failed to read \"%s\" cannot read VFS to initialize mod\n", slus_path);
+		while (1);
+	}
+}
