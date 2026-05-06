@@ -135,6 +135,8 @@ extern void soundUpdate(void);
 */
 extern void font_printfXY(float x, float y, char *fmt, ...);
 
+extern void FontDrawSpriteZ(float xPos, float yPos, float xWid, float yHeight, unsigned int zPos, int img, int ot, int sprAspectCorrect);
+
 /*	Resets the global state that controls how text is shown on screen to defualts */
 extern void FontDefaults(void);
 
@@ -1568,7 +1570,7 @@ typedef struct PAC_OBJ {
     int DeathType;
     float lowestYpos;
     float SquashedTime;
-	/// @brief this appears to be fully unused, this screws up your controls and while it tries to put stars above your head it doesn't load it if set manually, so it just uses the rendered output itself
+	/// @brief although in the decompiled code this appears unused this is actually used in final level, this screws up your controls and while it tries to put stars above your head it doesn't load it if set manually, so it just uses the rendered output itself
     int controls_whacked;
     struct DefAnimLinkedSound Event;
     float possiblyTrappedTime;

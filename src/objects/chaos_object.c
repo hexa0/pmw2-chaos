@@ -1,6 +1,7 @@
 #include "../game/pmw2lib.h"
 #include "../util.h"
 #include "../settings.h"
+#include "chaos_object.h"
 
 int IsExcludedLevel() {
 	if (strncmp(gLoadedLevelRarName, "levels/forest1.rar", 18) == 0) return 1;
@@ -547,7 +548,7 @@ void ChaosObject_Render(chaos_object_t *obj)
 		SetFontGradientBottomColor(180, 180, 0, 100);
 		call_SetFontScale(0.5);
 		SetFontAlignment(FONT_ALIGN_LEFT);
-		call_font_printf(0.02, 0.02, fmt((char[512]){0},
+		call_font_printf(widescreenAspect ? 0.015 : 0.02, 0.02, fmt((char[512]){0},
 			"Next Effect In: %s\n\n\n\n\n\n%s",
 			float_to_str((char[16]){0}, obj->nextEffect - obj->timer, 1),
 			effectListBuf

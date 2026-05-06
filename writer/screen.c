@@ -1,15 +1,5 @@
 #include <stdarg.h>
 
-int vsnprintf(char *str, unsigned int size, const char *format, va_list ap) {
-    char *s = (char *)format;
-    unsigned int i = 0;
-    while (i < size - 1 && *s) {
-        str[i++] = *s++;
-    }
-    str[i] = '\0';
-    return i;
-}
-
 #include <sifrpc.h>
 #include "debug/scr_printf.c"
 
@@ -20,8 +10,8 @@ int vsnprintf(char *str, unsigned int size, const char *format, va_list ap) {
 #define O 0x4
 #define R 0x5
 
-static unsigned char* err = "\x1\x5\x5\x4\x5\xFF\x3\x4\x6\x0\x2\x3";
-static unsigned char* load = "\x0\x5\x0\x6";
+static char* err = "\x1\x5\x5\x4\x5\xFF\x3\x4\x6\x0\x2\x3";
+static char* load = "\x0\x5\x0\x6";
 
 void ShowReadError() {
 	sceSifInitRpc(0);

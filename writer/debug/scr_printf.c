@@ -24,7 +24,6 @@
 
 static short int X, Y;
 static u32 bgcolor = 0;
-static short int cursor = 1;
 
 struct t_setupscr
 {

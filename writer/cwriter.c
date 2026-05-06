@@ -108,12 +108,12 @@ void cinit() {
 
 		log_scr("vfs at 0x%00X has %d entries\n", VFS_OFFSET, total_entries);
 
-		for (int i = 0; i < total_entries; i++) {
+		for (unsigned int i = 0; i < total_entries; i++) {
 			vfs_entry_t* entry = &vfs_table[i];
 			log_scr("%s at 0x%00X (%d bytes)\n", entry->name, entry->offset, entry->size);
 		}
 
-		for (int i = 0; i < total_entries; i++) {
+		for (unsigned int i = 0; i < total_entries; i++) {
 			vfs_entry_t* entry = &vfs_table[i];
 
 			if (strcmp(entry->name, "MOD.BIN") == 0) {
@@ -136,8 +136,8 @@ void cinit() {
 				unsigned char actual_cksum = 0;
 				unsigned char* ptr = (unsigned char*)0x000A0000;
 
-				for (unsigned int i = 0; i < entry->size; i++) {
-					actual_cksum += ptr[i];
+				for (unsigned int j = 0; j < entry->size; j++) {
+					actual_cksum += ptr[j];
 				}
 
 				if (actual_cksum != entry->cksum) {

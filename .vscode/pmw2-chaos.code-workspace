@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "root",
+			"path": ".."
+		},
+		{
+			"name": "mod src",
+			"path": "../src"
+		},
+		{
+			"name": "tool src",
+			"path": "../tool"
+		}
+	],
+	"settings": {}
+}

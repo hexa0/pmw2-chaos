@@ -1,6 +1,7 @@
 #include "game/pmw2lib.h"
 #include "settings.h"
 #include "util.h"
+#include <string.h>
 #include <libsd.h>
 
 typedef enum mod_menu_option_type {
@@ -17,7 +18,7 @@ typedef void (*button_callback_hndl)();
 
 struct mod_menu_option_s
 {
-	DefMultiLanguageString text;
+	DefMultiLanguageString *text;
 	DefMultiLanguageString textOn;
 	DefMultiLanguageString description;
 	mod_menu_option_type type;
@@ -172,17 +173,81 @@ void EnterLangScreenMenu() {
 // 	assemble_jal_at((unsigned int)0x00175FA4, (unsigned int)&ee_musicTransferNowait);
 // }
 
-void ReloadAudio() {
-	musicStop();
-	iopUnload();
-	soundInit();
-	// musicInit();
+// void ReloadAudio() {
+// 	musicStop();
+// 	iopUnload();
+// 	soundInit();
+// 	// musicInit();
+// }
+
+static const DefMultiLanguageString ratios_43 = {"4:3", "4:3"};
+static const DefMultiLanguageString ratios_169 = {"16:9", "16:9"};
+
+static DefMultiLanguageString currentRatioText = {"4:3", "4:3"};
+
+void widescreen_loading_bg_sprite_draw() {
+	__asm__ volatile (
+		"lui $v1, 0x3F00\n\t"
+		"mtc1 $v1, $f1\n\t"
+		"lui $v1, 0x3F40\n\t"
+		"mtc1 $v1, $f2\n\t"
+
+		"sub.s $f12, $f12, $f1\n\t"
+		"mul.s $f12, $f12, $f2\n\t"
+		"add.s $f12, $f12, $f1\n\t"
+
+		"li $a3, 1\n\t"
+
+		"j FontDrawSpriteZ\n\t"
+		"nop\n\t"
+	);
+}
+
+void widescreen_pacdot_collecting_draw() {
+	__asm__ volatile (
+		"li $a3, 1\n\t"
+
+		"j FontDrawSpriteZ\n\t"
+		"nop\n\t"
+	);
+}
+
+void EnableWidescreen() {
+	currentRatioText[0] = ratios_169[0];
+	currentRatioText[1] = ratios_169[1];
+
+	assemble_jal_at(0x001837F0, (unsigned int)&widescreen_loading_bg_sprite_draw);
+	assemble_jal_at(0x001DBD08, (unsigned int)&widescreen_pacdot_collecting_draw);
+	FlushCache(0);
+	FlushCache(2);
+}
+
+void DisableWidescreen() {
+	currentRatioText[0] = ratios_43[0];
+	currentRatioText[1] = ratios_43[1];
+	
+	assemble_jal_at(0x001837F0, (unsigned int)&FontDrawSpriteZ);
+	assemble_jal_at(0x001DBD08, (unsigned int)&FontDrawSpriteZ);
+	FlushCache(0);
+	FlushCache(2);
+}
+
+void ToggleWidescreen() {
+	gStagedModSettings.widescreen = !gStagedModSettings.widescreen;
+	widescreenAspect = gStagedModSettings.widescreen;
+
+	if (widescreenAspect) {
+		EnableWidescreen();
+	}
+	else {
+		DisableWidescreen();
+	}
 }
 
 
 static mod_menu_option_t chaosModOptions[] = {
 	{
-		.text = {
+		.text = &(DefMultiLanguageString){
 			"Random Effect Rate Modifier",
 			/* SJIS */ "ランダムコウカ ハッセイリツ"
 		},
@@ -196,7 +261,7 @@ static mod_menu_option_t chaosModOptions[] = {
 		.sliderPtr = &gStagedModSettings.chaosEffectDurationMultipler
 	},
 	{
-		.text = {
+		.text = &(DefMultiLanguageString){
 			"Random Effect Duration Modifier",
 			/* SJIS */ "ランダムコウカ ジゾクジカン"
 		},
@@ -213,17 +278,16 @@ static mod_menu_option_t chaosModOptions[] = {
 
 static mod_menu_option_t gameExtraOptions[] = {
 	{
-		.text = { "4:3", "4:3" },
-		.textOn = { "16:9", "16:9" },
+		.text = &currentRatioText,
 		.description = {
 			"Toggles aspect ratio.",
 			/* SJIS */ "アスペクト比を 切り替えます。"
 		},
-		.type = OPTION_TOGGLE,
-		.boolValuePtr = &widescreenAspect
+		.type = OPTION_BUTTON,
+		.buttonCallbackPtr = &ToggleWidescreen
 	},
 	{
-		.text = { "English", "" },
+		.text = &(DefMultiLanguageString){ "English", "" },
 		.textOn = { "", /* SJIS */ "ニホンゴ" },
 		.description = {
 			"Toggles current language between\nEnglish/Japanese.",
@@ -236,41 +300,45 @@ static mod_menu_option_t gameExtraOptions[] = {
 
 static mod_menu_option_t developerOptions[] = {
 	{
-		.text = { "LangOpt" },
+		.text = &(DefMultiLanguageString){ "LangOpt" },
+		.description = { "THIS WILL SOFTLOCK YOU,\nthis is the vanilla language select UI"},
 		.type = OPTION_BUTTON,
 		.buttonCallbackPtr = &EnterLangScreenMenu
 	},
 	{
-		.text = { "Camera Menu" },
+		.text = &(DefMultiLanguageString){ "Camera Menu" },
+		.description = { "camera debug information" },
 		.type = OPTION_BUTTON,
 		.buttonCallbackPtr = &EnterCameraMenu
 	},
 	{
-		.text = { "Sound Test" },
+		.text = &(DefMultiLanguageString){ "Sound Test" },
+		.description = { "sound test, a little buggy but nice"},
 		.type = OPTION_BUTTON,
 		.buttonCallbackPtr = &EnterSoundTestMenu
 	},
 	{
-		.text = { "Music Test" },
+		.text = &(DefMultiLanguageString){ "Music Test" },
+		.description = { "loads netdata/music/jeff.mus.mus\nbecause jeff can't call\nplayMusic right apparently"},
 		.type = OPTION_BUTTON,
 		.buttonCallbackPtr = &EnterMusicTestMenu
 	},
-	{
-		.text = { "Load LEVEL RARS from host:" },
-		.description = { "VERY EXPERIMENTAL\nthis will ONLY load the RARs\ni spent many hours trying to\nget sound to work just not possible\n with my skills"},
-		.type = OPTION_BUTTON,
-		// .buttonCallbackPtr = &InjectHostFS
-	},
-	{
-		.text = { "Reload AUDIO>IRX" },
-		.type = OPTION_BUTTON,
-		.buttonCallbackPtr = &ReloadAudio
-	}
+	// {
+	// 	.text = { "Load LEVEL RARS from host:" },
+	// 	.description = { "VERY EXPERIMENTAL\nthis will ONLY load the RARs\ni spent many hours trying to\nget sound to work just not possible\n with my skills"},
+	// 	.type = OPTION_BUTTON,
+	// 	// .buttonCallbackPtr = &InjectHostFS
+	// },
+	// {
+	// 	.text = { "Reload AUDIO>IRX" },
+	// 	.type = OPTION_BUTTON,
+	// 	.buttonCallbackPtr = &ReloadAudio
+	// }
 };
 
 static mod_menu_option_t rootModOptions[] = {
 	{
-		.text = {
+		.text = &(DefMultiLanguageString){
 			"Chaos Edition Settings",
 			/* SJIS */ "カオスエディション セッテイ"
 		},
@@ -283,7 +351,7 @@ static mod_menu_option_t rootModOptions[] = {
 		.menuSize = 2
 	},
 	{
-		.text = {
+		.text = &(DefMultiLanguageString){
 			"Pacman World 2",
 			/* SJIS */ "パックマンワールド 2"
 		},
@@ -296,15 +364,17 @@ static mod_menu_option_t rootModOptions[] = {
 		.menuSize = 2
 	},
 	{
-		.text = "Developer Options",
+		.text = &(DefMultiLanguageString){
+			"Developer Options"
+		},
 		.description = "shhhhh",
 		.type = OPTION_MENU,
 		.menuSize = 0,
 		.menuPtr = developerOptions,
-		.menuSize = 6
+		.menuSize = 4
 	},
 	{
-		.text = {
+		.text = &(DefMultiLanguageString){
 			"Apply Changes",
 			/* SJIS */ "セッテイを ホゾン"
 		},
@@ -324,7 +394,7 @@ int ModSettingsMenu(sceGsDBuffDc_dummy_t *db) {
 		// setup menu
 		inModSettingsMenu = true;
 		modMenuPtr = rootModOptions;
-		modMenuSize = 3;
+		modMenuSize = 4;
 		modMenuCurrentOption = 0;
 		modMenuBackStackSize = 0;
 	}
@@ -372,10 +442,10 @@ int ModSettingsMenu(sceGsDBuffDc_dummy_t *db) {
 
 			switch (option->type) {
 				case OPTION_TOGGLE:
-					call_font_printf(0.5f, currentHeight, *option->boolValuePtr ? option->textOn[CurrentLanguage] : option->text[CurrentLanguage]);
+					call_font_printf(0.5f, currentHeight, *option->boolValuePtr ? option->textOn[CurrentLanguage] : (*option->text)[CurrentLanguage]);
 					break;
 				default:
-					call_font_printf(0.5f, currentHeight, option->text[CurrentLanguage]);
+					call_font_printf(0.5f, currentHeight, (*option->text)[CurrentLanguage]);
 					break;
 			}
 		}

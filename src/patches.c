@@ -5,7 +5,7 @@
 #include "objects/debug_object.h"
 #include "objects/chaos_object.h"
 #include "objects/settings_object.h"
-#include "settings.c"
+#include "settings.h"
 
 void pre_sound_update()
 {
@@ -203,4 +203,24 @@ void inject_host_fs() {
 	assemble_j_at((unsigned int)_closestream, (unsigned int)&_closestream_host);
 	assemble_j_at((unsigned int)_startstreaming, (unsigned int)&_startstreaming_host);
 	assemble_j_at((unsigned int)fixfordvd, (unsigned int)&fixfordvd_hook);
+}
+
+void inject_widescreen_bug_fixes() {
+	printf("injecting widescreen bug fixes\n");
+
+	// handled by settings.C now
+	// assemble_jal_at(0x001837F0, (unsigned int)&widescreen_loading_bg_sprite_draw);
+	// assemble_jal_at(0x001DBD08, (unsigned int)&widescreen_pacdot_collecting_draw);
+
+	// fix weird fov scaling
+	*(unsigned int*)0x5a2a3c = 0x3F7E0000;
+
+	// possibly more aspect configurations via this?
+
+	// allow us to control aspectWidthScale
+	// assemble_nop_at(0x001190EC);
+	// allow us to control currentAspect
+	// this variable is unused nvm
+	// assemble_nop_at(0x001193A4);
+	// assemble_nop_at(0x00119390);
 }
