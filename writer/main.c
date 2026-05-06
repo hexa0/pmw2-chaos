@@ -58,7 +58,7 @@ void assemble_j_at(unsigned int addr, unsigned int to) {
 extern void __main(void);
 
 void stage2() {
-	printf("ws2\n");
+	// printf("ws2\n");
 	ShowLoad();
 
 	char* file = "host:netdata/mod/mod.bin";
