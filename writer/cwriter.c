@@ -33,41 +33,7 @@ unsigned int sceRead(int fd, void *buf, int size);
 extern int sceClose(int fd);
 extern unsigned int sceLseek(int fd, int offset, int whence);
 
-// static unsigned int offsets[] = {5242880, 6291456, 7340032};
-// static const char* names[] = {"iomanX", "usbd", "usbhdfsd"};
-// void* buffers[3];
-// unsigned int lengths[3];
-
 static const char* slus_path = "cdrom0:\\SLUS_202.24;1";
-
-// void LoadInjectedIopDrivers(int fd) {
-// 	log("loading iop drivers\n");
-
-// 	unsigned char* ram_ptr = (unsigned char*)0x0009F000;
-
-// 	for (int i = 0; i < 3; i++) {
-// 		sceLseek(fd, offsets[i], 0);
-// 		sceRead(fd, &lengths[i], 4);
-		
-// 		buffers[i] = ram_ptr;
-// 		sceRead(fd, buffers[i], lengths[i]);
-		
-// 		ram_ptr += (lengths[i] + 15) & ~15;
-// 	}
-
-// 	sceClose(fd);
-
-// 	int ret;
-// 	FlushCache(0);
-
-// 	for (int i = 0; i < 3; i++) {
-// 		log("SifExecModuleBuffer:\ndriver %s (%d), offset %u ram_ptr %u size %u\n", names[i], i, offsets[i], buffers[i], lengths[i]);
-// 		int r = SifExecModuleBuffer(buffers[i], lengths[i], 0, NULL, &ret);
-// 		log("got %d\n", r);
-		
-// 		for(int j = 0; j < 500000; j++) { __asm__ volatile("nop"); }
-// 	}
-// }
 
 typedef struct vfs_entry_s {
     char name[16];
@@ -85,7 +51,6 @@ void cinit() {
 	init_scr();
 	log_scr("init PMW2 cwriter loader\n");
 
-	// int fd = sceOpen(slus_path, 0x0001);
 	// this actually loads now but our drivers are not able to read mass yet
 	// ill investigate this later or if someone smarter knows how to fix this
 	// though we are running after the game loads its own IOP drivers and also

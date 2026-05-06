@@ -86,100 +86,6 @@ void EnterLangScreenMenu() {
 	Game_AssignMainFuncs(LangOpt, (RENDER_VU1_FUNC)0x0, (RENDER_VU1_TRANSPARENT_FUNC)0x0);
 }
 
-// void _startstreaming_host(int fd, unsigned char *buffer, int size) {
-// 	printf("_startstreaming_host %d 0x%00X %d\n", fd, &buffer, size);
-
-// 	int bytesRead = sceRead(fd, buffer, size);
-
-// 	if (bytesRead < 0) {
-//         printf("host streaming error: %d\n", fd);
-//     }
-// }
-
-// void _closestream_host(int fd) {
-// 	printf("_closestream_host %d\n", fd);
-
-//     if (fd >= 0) {
-//         sceClose(fd);
-//     }
-// }
-
-// char* MakeCaps(char *text) {
-// 	char *p = text;
-
-// 	while (*p != '\0') {
-// 		if (*p >= 'a' && *p <= 'z') {
-// 			*p -= 0x20;
-// 		}
-		
-// 		p++;
-// 	}
-
-// 	return text;
-// }
-
-// int fixfordvd_host(char *dst, char *filename) {
-// 	sprintf(dst, "host:%s", filename);
-
-// 	MakeCaps(strchr(dst, ':'));
-	
-// 	printf("fixfordvd_host %s\n", dst);
-// }
-
-// int _streamfilefrompc_host(char *filename, int *length) {
-// 	printf("_streamfilefrompc_host %s %d\n", filename, length);
-
-// 	char name[64];
-//     fixfordvd_host(name, filename);
-    
-//     int fd = sceOpen(name, 0x0001);
-
-//     if (fd >= 0) {
-//         *length = sceLseek(fd, 0, 2);
-//         sceLseek(fd, 0, 0);
-//     }
-// 	else {
-// 		// fixes loading screens stupidly relying on SCEECdSearchFile from the original code
-// 		sprintf(name, "host:NETDATA/LEVELS/%s", MakeCaps(filename));
-
-// 		fd = sceOpen(name, 0x0001);
-
-// 		if (fd >= 0) {
-// 			*length = sceLseek(fd, 0, 2);
-// 			sceLseek(fd, 0, 0);
-// 		}
-// 		else {
-// 			printf("_streamfile_host error %s %d\n", name, fd);
-// 		}
-// 	}
-
-//     return fd;
-// }
-
-// void InjectHostFS() {
-// 	// strcpy((char *)0x0057EBD8, "host:%s");
-// 	assemble_j_at((unsigned int)_streamfilefrompc, (unsigned int)&_streamfilefrompc_host);
-// 	assemble_j_at((unsigned int)_closestream, (unsigned int)&_closestream_host);
-// 	assemble_j_at((unsigned int)_startstreaming, (unsigned int)&_startstreaming_host);
-
-// 	FlushCache(0);
-// 	FlushCache(1);
-
-// 	playSoundSymbol("SND_CHCKPNT1");
-// 	// assemble_j_at((unsigned int)fixfordvd, (unsigned int)&fixfordvd_host);
-// }
-
-// void UndoHostEEMusicTransfer() {
-// 	assemble_jal_at((unsigned int)0x00175FA4, (unsigned int)&ee_musicTransferNowait);
-// }
-
-// void ReloadAudio() {
-// 	musicStop();
-// 	iopUnload();
-// 	soundInit();
-// 	// musicInit();
-// }
-
 static const DefMultiLanguageString ratios_43 = {"4:3", "4:3"};
 static const DefMultiLanguageString ratios_169 = {"16:9", "16:9"};
 
@@ -322,18 +228,7 @@ static mod_menu_option_t developerOptions[] = {
 		.description = { "loads netdata/music/jeff.mus.mus\nbecause jeff can't call\nplayMusic right apparently"},
 		.type = OPTION_BUTTON,
 		.buttonCallbackPtr = &EnterMusicTestMenu
-	},
-	// {
-	// 	.text = { "Load LEVEL RARS from host:" },
-	// 	.description = { "VERY EXPERIMENTAL\nthis will ONLY load the RARs\ni spent many hours trying to\nget sound to work just not possible\n with my skills"},
-	// 	.type = OPTION_BUTTON,
-	// 	// .buttonCallbackPtr = &InjectHostFS
-	// },
-	// {
-	// 	.text = { "Reload AUDIO>IRX" },
-	// 	.type = OPTION_BUTTON,
-	// 	.buttonCallbackPtr = &ReloadAudio
-	// }
+	}
 };
 
 static mod_menu_option_t rootModOptions[] = {
@@ -455,36 +350,6 @@ int ModSettingsMenu(sceGsDBuffDc_dummy_t *db) {
 		SetFontWiggle(false);
 		call_font_printf(0.5f, 0.9f, currentOption->description[CurrentLanguage]);
 
-		// switch (currentOption->type) {
-		// 	case OPTION_MENU:
-		// 		FontDefaults();
-		// 		SetFontAlignment(FONT_ALIGN_CENTERCENTER);
-		// 		call_font_printf(0.5f, 0.6f, fmt((char[50]){0}, "menuPtr %00X menuSize %d", currentOption->menuPtr, currentOption->menuSize));
-		// 		break;
-		// 	case OPTION_TOGGLE:
-		// 		FontDefaults();
-		// 		SetFontAlignment(FONT_ALIGN_CENTERCENTER);
-		// 		call_font_printf(0.5f, 0.6f, fmt((char[50]){0}, "boolValuePtr %00X %d", currentOption->boolValuePtr, *currentOption->boolValuePtr));
-		// 		break;
-		// 	case OPTION_SLIDER:
-		// 		FontDefaults();
-		// 		SetFontAlignment(FONT_ALIGN_CENTERCENTER);
-		// 		call_font_printf(0.5f, 0.6f,
-		// 			fmt((char[50]){0}, "sliderPtr %00X %s",
-		// 				currentOption->sliderPtr,
-		// 				float_to_str((char[16]){0}, *currentOption->sliderPtr, 4)
-		// 			)
-		// 		);
-		// 		break;
-		// 	case OPTION_BUTTON:
-		// 		FontDefaults();
-		// 		SetFontAlignment(FONT_ALIGN_CENTERCENTER);
-		// 		call_font_printf(0.5f, 0.6f, fmt((char[50]){0}, "buttonCallbackPtr %00X", currentOption->buttonCallbackPtr));
-		// 		break;
-		// 	default:
-		// 		break;
-		// }
-
 		// interact check
 
 		if (pads[0].btn.cross && !pads[0].old_btn.cross) {
@@ -500,7 +365,7 @@ int ModSettingsMenu(sceGsDBuffDc_dummy_t *db) {
 
 					if (modMenuBackStackSize == 10) {
 						inModSettingsMenu = false;
-						playSoundSymbol(""); // force an error sound
+						soundPlayError();
 						Game_PopMainFuncs();
 						return 0;
 					}

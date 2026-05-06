@@ -1769,6 +1769,7 @@ extern pad_info_t pads[2];
 extern int soundFindSymbol(char *symbol);
 extern int playSound(int soundNo, int tone);
 extern int soundPlay(int soundNum);
+extern int soundPlayError(void);
 extern BOOL widescreenAspect;
 
 /// @brief called before playing FMVs
