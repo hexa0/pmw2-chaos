@@ -5,7 +5,8 @@
 #include "objects/debug_object.h"
 #include "objects/chaos_object.h"
 #include "objects/settings_object.h"
-#include "settings.h"
+#include "options_menu.h"
+#include "loadscrn.h"
 
 void pre_sound_update()
 {
@@ -124,6 +125,7 @@ static const char* modSettingsText = "MOD SETTINGS";
 static const char* modSettingsTextJP = /* SJIS */ "モッド設定";
 
 void replace_screen_adjust_menu() {
+	printf("adding mod settings menu\n");
 	pauseMainMenu[3][0] = (char*)modSettingsText;
 	pauseMainMenu[3][1] = (char*)modSettingsTextJP;
 	pauseMapMenu[3][0] = (char*)modSettingsText;
@@ -139,16 +141,6 @@ void replace_screen_adjust_menu() {
 	
 	InitModSettings();
 	assemble_j_at((unsigned int)UpdateScreenMenu, (unsigned int)&ModSettingsMenu);
-}
-
-void _startstreaming_host(int fd, unsigned char *buffer, int size) {
-	printf("_startstreaming_host %d 0x%00X %d\n", fd, &buffer, size);
-
-	int bytesRead = sceRead(fd, buffer, size);
-
-	if (bytesRead < 0) {
-        printf("host streaming error: %d\n", fd);
-    }
 }
 
 void _closestream_host(int fd) {
@@ -167,7 +159,7 @@ int fixfordvd_hook(char *dst, char *filename) {
 }
 
 int _streamfilefrompc_host(char *filename, int *length) {
-	printf("_streamfilefrompc_host %s %d\n", filename, length);
+	printf("streaming rar %s\n", filename);
 
 	char name[64];
 	sprintf(name, "host:netdata/%s", filename);
@@ -176,6 +168,8 @@ int _streamfilefrompc_host(char *filename, int *length) {
 
     if (fd >= 0) {
         *length = sceLseek(fd, 0, 2);
+		levelRarSize = *length;
+		levelRarReadPosition = 0;
         sceLseek(fd, 0, 0);
     }
 	else {
@@ -186,14 +180,27 @@ int _streamfilefrompc_host(char *filename, int *length) {
 
 		if (fd >= 0) {
 			*length = sceLseek(fd, 0, 2);
+			levelRarSize = *length;
+			levelRarReadPosition = 0;
 			sceLseek(fd, 0, 0);
 		}
 		else {
-			printf("_streamfile_host error %s %d\n", name, fd);
+			printf("rar %s has failed with code %d\n", name, fd);
 		}
 	}
 
     return fd;
+}
+
+void _startstreaming_host(int fd, unsigned char *buffer, int size) {
+	int bytesRead = sceRead(fd, buffer, size);
+
+	if (bytesRead < 0) {
+        printf("rar streaming error: %d\n", fd);
+    }
+	else {
+		levelRarReadPosition += bytesRead;
+	}
 }
 
 void inject_host_fs() {
@@ -203,6 +210,32 @@ void inject_host_fs() {
 	assemble_j_at((unsigned int)_closestream, (unsigned int)&_closestream_host);
 	assemble_j_at((unsigned int)_startstreaming, (unsigned int)&_startstreaming_host);
 	assemble_j_at((unsigned int)fixfordvd, (unsigned int)&fixfordvd_hook);
+}
+
+void calculate_screen_clip() {
+	view_screen[0][0] = view_screen[0][0] * aspectWidthScale;
+    view_clip[0][0] = view_clip[0][0] * aspectWidthScale;
+	// slightly extended for up to 21:9
+	VU1_view_clip[0][0] = 1.14f;
+
+	__asm__ volatile (
+		"j 0x001193A0"
+	);
+}
+
+void ShowLoadingProgress() {
+	FontDefaults();
+	SetFontAlignment(FONT_ALIGN_LEFT);
+
+	fontCursorX = widescreenAspect ? 0.015f : 0.02f;
+	fontCursorY = 0.02f;
+
+	char textbuf[32];
+	snprintf(textbuf, sizeof(textbuf), "progress: %s%%", float_to_str((char[4]){0}, LevelRarLoadProgress() * 100.0f, 0));
+	
+	DrawFont(textbuf);
+
+	SetStatusCamera();
 }
 
 void inject_widescreen_bug_fixes() {
@@ -218,9 +251,17 @@ void inject_widescreen_bug_fixes() {
 	// possibly more aspect configurations via this?
 
 	// allow us to control aspectWidthScale
-	// assemble_nop_at(0x001190EC);
+	assemble_nop_at(0x001190EC);
 	// allow us to control currentAspect
 	// this variable is unused nvm
 	// assemble_nop_at(0x001193A4);
 	// assemble_nop_at(0x00119390);
+	assemble_j_at(0x00119370, (unsigned int)&calculate_screen_clip);
+	// alow us to manually calculate view_screen and view_clip
+}
+
+void inject_loading_progress() {
+	printf("injecting loading progress bar\n");
+	// SetStatusCamera callsite in LoadingBar
+	assemble_jal_at(0x00183828, (unsigned int)&ShowLoadingProgress);
 }

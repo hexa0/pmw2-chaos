@@ -16,7 +16,7 @@ const char* cinema_txt_jp = "jcinema.txt";
 void SettingsObject_Update(settings_object_t *obj)
 {
 	if (!inModSettingsMenu) {
-		widescreenAspect = gModSettings.widescreen;
+		widescreenAspect = gModSettings.aspectRatio;
 		CurrentLanguage = svGameCurrent.UserPreference.CurrentLanguage;
 
 		// absolute jcinema.txt

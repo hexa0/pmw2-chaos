@@ -5,7 +5,8 @@
 			"includePath": [
 				"${workspaceFolder}/**",
 				"${PS2SDK}/ee/include",
-				"${PS2SDK}/common/include"
+				"${PS2SDK}/common/include",
+				"${PS2SDK}/ports/include"
 			],
 			"defines": [],
 			"compilerPath": "${PS2DEV}/ee/bin/mips64r5900el-ps2-elf-gcc",

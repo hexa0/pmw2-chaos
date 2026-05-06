@@ -44,6 +44,8 @@ typedef struct vfs_entry_s {
 
 #define VFS_OFFSET 5242880
 
+extern int isEmulator;
+
 void cinit() {
 	iopStartUp();
 	
@@ -65,6 +67,8 @@ void cinit() {
     vfs_entry_t vfs_table[16];
 
 	if (fd >= 0) {
+		isEmulator = 0;
+		
 		log_scr("successfully got handle to %s (%d)\n", slus_path, fd);
 
 		sceLseek(fd, VFS_OFFSET, 0);

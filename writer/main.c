@@ -57,6 +57,8 @@ void assemble_j_at(unsigned int addr, unsigned int to) {
 /// @brief initializes the global ctors in the base game via __do_global_ctors
 extern void __main(void);
 
+extern int isEmulator;
+
 void stage2() {
 	// printf("ws2\n");
 	ShowLoad();
@@ -66,7 +68,7 @@ void stage2() {
 	int fd = sceOpen(file, 00);
 
 	if (fd >= 0) {
-
+		isEmulator = 1;
 		int size = sceLseek(fd, 0, 2);
 		sceLseek(fd, 0, 0);
 

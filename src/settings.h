@@ -1,25 +1,19 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include "widescreen.h"
+
 typedef struct mod_settings_s {
+	BOOL chaosModActive;
 	float chaosEffectRateDiviser;
 	float chaosEffectDurationMultipler;
 	int currentLanguage;
-	BOOL widescreen;
+	AspectRatio aspectRatio;
 } mod_settings_t;
 
 mod_settings_t gModSettings;
 mod_settings_t gStagedModSettings;
 BOOL inModSettingsMenu;
-
-int InitModSettings() {
-	gModSettings.chaosEffectDurationMultipler = 1.0f;
-	gModSettings.chaosEffectRateDiviser = 1.0f;
-	gModSettings.currentLanguage = svGameCurrent.UserPreference.CurrentLanguage;
-	gModSettings.widescreen = false;
-
-	gStagedModSettings = gModSettings;
-}
 
 #include "settings.c"
 

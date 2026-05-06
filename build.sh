@@ -12,7 +12,7 @@ echo GCC preprocessing
 
 rm -rf .tmp/*
 mkdir .tmp/mod/ .tmp/writer/ .tmp/cwriter/
-mips64r5900el-ps2-elf-gcc -E -C src/main.c -Wall -Wextra -Wshadow -Wimplicit -march=r5900 -I$PS2SDK/ee/lib -I$PS2SDK/ee/include -I$PS2SDK/common/include -D_EE > .tmp/mod/main.i
+mips64r5900el-ps2-elf-gcc -E -C src/main.c -Wall -Wextra -Wshadow -Wimplicit -march=r5900 -I$PS2SDK/ee/lib -I$PS2SDK/ee/include -I$PS2SDK/common/include -I$PS2SDK/ports/include -D_EE > .tmp/mod/main.i
 
 echo converting shift-JIS
 
@@ -20,19 +20,19 @@ build/tool/encode_shift_jis .tmp/mod/main.i
 
 echo compiling mod
 
-mips64r5900el-ps2-elf-gcc -c .tmp/mod/main.i -march=r5900 -O3 -fno-asynchronous-unwind-tables -fno-exceptions -fno-common -ffreestanding -I$PS2SDK/ee/lib -I$PS2SDK/ee/include -I$PS2SDK/common/include -D_EE
+mips64r5900el-ps2-elf-gcc -c .tmp/mod/main.i -march=r5900 -O3 -fno-asynchronous-unwind-tables -fno-exceptions -fno-common -ffreestanding -I$PS2SDK/ee/lib -I$PS2SDK/ee/include -I$PS2SDK/common/include -I$PS2SDK/ports/include -D_EE
 mv *.o .tmp/mod
 echo linking mod
-mips64r5900el-ps2-elf-ld -R game.syms -L$PS2SDK/ee/lib -L$PS2DEV/gsKit/lib -L$PS2SDK/ports/lib -L$PS2SDK/ports/lib -L$PS2DEV/ee/mips64r5900el-ps2-elf/lib -L$PS2DEV/ee/lib/gcc/mips64r5900el-ps2-elf/15.2.0 -zmax-page-size=128 .tmp/mod/*.o -ldebug -lps2snd -lkernel -lc -lgcc -T mod.ld -Ttext 0x000A0000 -o .tmp/mod/code.elf
+mips64r5900el-ps2-elf-ld -R game.syms -R state.syms -L$PS2SDK/ee/lib -L$PS2DEV/gsKit/lib -L$PS2SDK/ports/lib -L$PS2SDK/ports/lib -L$PS2DEV/ee/mips64r5900el-ps2-elf/lib -L$PS2DEV/ee/lib/gcc/mips64r5900el-ps2-elf/15.2.0 -zmax-page-size=128 .tmp/mod/*.o -ldebug -lps2snd -lkernel -lm -lc -lgcc -T mod.ld -Ttext 0x000A0000 -o .tmp/mod/code.elf
 echo extracting mod binary
 mips64r5900el-ps2-elf-objcopy -O binary .tmp/mod/code.elf .tmp/mod/code.bin
 cp .tmp/mod/code.bin build/MOD.BIN
 printf "RunMod = 0x$(mips64r5900el-ps2-elf-nm .tmp/mod/code.elf | grep -w "RunMod" | cut -d' ' -f1);" >> .tmp/mod/code.syms
 echo compiling writer
-mips64r5900el-ps2-elf-gcc -c writer/main.c -Wall -Wextra -Wshadow -Wimplicit -march=r5900 -Oz -fno-asynchronous-unwind-tables -fno-exceptions -fno-common -ffreestanding -I$PS2SDK/ee/lib -I$PS2SDK/ee/include -I$PS2SDK/common/include -D_EE
+mips64r5900el-ps2-elf-gcc -c writer/main.c -Wall -Wextra -Wshadow -Wimplicit -march=r5900 -Oz -fno-asynchronous-unwind-tables -fno-exceptions -fno-common -ffreestanding -I$PS2SDK/ee/lib -I$PS2SDK/ee/include -I$PS2SDK/common/include -I$PS2SDK/ports/include -D_EE
 mv *.o .tmp/writer
 echo linking writer
-mips64r5900el-ps2-elf-ld -R game.syms -R .tmp/mod/code.syms -L$PS2SDK/ee/lib -L$PS2DEV/gsKit/lib -L$PS2SDK/ports/lib -L$PS2SDK/ports/lib -L$PS2DEV/ee/mips64r5900el-ps2-elf/lib -L$PS2DEV/ee/lib/gcc/mips64r5900el-ps2-elf/15.2.0 -zmax-page-size=128 -T writer.ld -Ttext 0x0009F000 -zmax-page-size=128 .tmp/writer/*.o -o .tmp/writer/code.elf
+mips64r5900el-ps2-elf-ld -R game.syms -R .tmp/mod/code.syms -R state.syms -L$PS2SDK/ee/lib -L$PS2DEV/gsKit/lib -L$PS2SDK/ports/lib -L$PS2SDK/ports/lib -L$PS2DEV/ee/mips64r5900el-ps2-elf/lib -L$PS2DEV/ee/lib/gcc/mips64r5900el-ps2-elf/15.2.0 -zmax-page-size=128 -T writer.ld -Ttext 0x0009F000 -zmax-page-size=128 .tmp/writer/*.o -o .tmp/writer/code.elf
 echo extracting writer binary
 mips64r5900el-ps2-elf-objcopy -O binary .tmp/writer/code.elf .tmp/writer/code.bin
 # echo generating cwriter irx headers
@@ -50,10 +50,10 @@ mips64r5900el-ps2-elf-objcopy -O binary .tmp/writer/code.elf .tmp/writer/code.bi
 
 # mips64r5900el-ps2-elf-gcc -c .tmp/cwriter/irx_data.c -march=r5900 -O2 -o .tmp/cwriter/irx_data.o
 echo compiling cwriter
-mips64r5900el-ps2-elf-gcc -c writer/main.c -Wall -Wextra -Wshadow -Wimplicit -march=r5900 -Oz -DIS_CWRITER -fno-asynchronous-unwind-tables -fno-exceptions -fno-common -ffreestanding -I$PS2SDK/ee/lib -I$PS2SDK/ee/include -I$PS2SDK/common/include -D_EE
+mips64r5900el-ps2-elf-gcc -c writer/main.c -Wall -Wextra -Wshadow -Wimplicit -march=r5900 -Oz -DIS_CWRITER -fno-asynchronous-unwind-tables -fno-exceptions -fno-common -ffreestanding -I$PS2SDK/ee/lib -I$PS2SDK/ee/include -I$PS2SDK/common/include -I$PS2SDK/ports/include -D_EE
 mv *.o .tmp/cwriter
 echo linking cwriter
-mips64r5900el-ps2-elf-ld -R game.syms -R .tmp/mod/code.syms -L$PS2SDK/ee/lib -L$PS2DEV/gsKit/lib -L$PS2SDK/ports/lib -L$PS2SDK/ports/lib -L$PS2DEV/ee/mips64r5900el-ps2-elf/lib -L$PS2DEV/ee/lib/gcc/mips64r5900el-ps2-elf/15.2.0 -zmax-page-size=128 -T cwriter.ld -Ttext 0x45ad10 -zmax-page-size=128 .tmp/cwriter/*.o -ldebug -lkernel -lc -lgcc -o .tmp/cwriter/code.elf
+mips64r5900el-ps2-elf-ld -R game.syms -R .tmp/mod/code.syms -R state.syms -L$PS2SDK/ee/lib -L$PS2DEV/gsKit/lib -L$PS2SDK/ports/lib -L$PS2SDK/ports/lib -L$PS2DEV/ee/mips64r5900el-ps2-elf/lib -L$PS2DEV/ee/lib/gcc/mips64r5900el-ps2-elf/15.2.0 -zmax-page-size=128 -T cwriter.ld -Ttext 0x45ad10 -zmax-page-size=128 .tmp/cwriter/*.o -ldebug -lkernel -lc -lgcc -o .tmp/cwriter/code.elf
 echo extracting cwriter binary
 mips64r5900el-ps2-elf-objcopy -O binary .tmp/cwriter/code.elf .tmp/cwriter/code.bin
 

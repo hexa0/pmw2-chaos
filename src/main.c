@@ -49,6 +49,7 @@ void Inject(BOOL isConsole) {
 	inject_create_inventory_hook();
 	replace_screen_adjust_menu();
 	inject_widescreen_bug_fixes();
+	inject_loading_progress();
 
 	log_scr("flushing EE cache\n");
 	FlushCache(0);

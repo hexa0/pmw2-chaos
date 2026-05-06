@@ -34,6 +34,10 @@ void patch_word(unsigned int addr, unsigned int data) {
     *(volatile unsigned int*)addr = swapped;
 }
 
+void patch_word_le(unsigned int addr, unsigned int instruction) {
+    *(volatile unsigned int*)addr = instruction;
+}
+
 /// @brief stubs the specified function
 /// @param func_addr function to stub
 void stub_func_at(unsigned int func_addr) {
@@ -52,15 +56,10 @@ __asm__ (
     "nop\n"
 );
 
-char* fmt(char *buf, char* fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	vsprintf(buf, fmt, args);
-	va_end(args);
-
-	return buf;
-}
+#define fmt(buf, format, ...) ({ \
+    sprintf(buf, format, ##__VA_ARGS__); \
+    (char*)(buf); \
+})
 
 /// @brief %f is fucked, so we have to reimplement it
 char* float_to_str(char* out, float f, int precision) {

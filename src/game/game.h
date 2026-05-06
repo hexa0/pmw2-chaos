@@ -135,6 +135,12 @@ extern void soundUpdate(void);
 */
 extern void font_printfXY(float x, float y, char *fmt, ...);
 
+extern float fontCursorX;
+extern float fontCursorY;
+extern float fontCursorZ;
+
+extern void DrawFont(byte *buf);
+
 extern void FontDrawSpriteZ(float xPos, float yPos, float xWid, float yHeight, unsigned int zPos, int img, int ot, int sprAspectCorrect);
 
 /*	Resets the global state that controls how text is shown on screen to defualts */
@@ -1889,5 +1895,71 @@ extern ANIM_TPL* globalAnimArray[128];
 extern ANIM globalAnimArray2[128];
 extern ANIM_NODE globalAnimCtrls[194];
 extern ANIM_NODE globalAnimNodes[2800];
+
+extern float aspectWidthScale;
+extern float currentAspect;
+
+extern FMATRIX view_screen;
+extern FMATRIX view_clip;
+extern FMATRIX VU1_view_clip;
+
+typedef struct PMI {
+    unsigned char magic[4];
+    unsigned int header;
+    float version;
+    short unsigned int width;
+    short unsigned int height;
+    unsigned char depth;
+    unsigned char trans;
+    unsigned char tw;
+    unsigned char th;
+    short unsigned int clutDepth;
+    short unsigned int clutLen;
+    short unsigned int rowLen;
+    unsigned char flags;
+    unsigned char pmode;
+    short unsigned int texBP;
+    short unsigned int clutBP;
+} PMI;
+
+extern void PreloadRevRam(void);
+
+extern char * SetFilePath(char *pathName);
+extern char * DownFileDirectory(char *directoryName);
+extern void UpFileDirectory(void);
+
+extern PMI * FindOrLoadTextureTo(char *name, unsigned int location);
+
+extern PMI *starTex;
+
+typedef struct MainFuncs_Struct {
+    DRAW_RTN pUpdateFunc;
+    RENDER_VU1_FUNC pVU1RenderFunc;
+    RENDER_VU1_TRANSPARENT_FUNC pVU1XParentRenderFunc;
+} MainFuncs;
+
+typedef struct Game_Struct {
+    int mode;
+    BOOL modeChange;
+    int state;
+    int nextState;
+    int prevState;
+    BOOL stateChange;
+    MainFuncs mainFuncs;
+    int mainFuncsStackSize;
+    MainFuncs mainFuncsStack[7];
+    int memCardSlotID;
+    int arcadeGameID;
+    int arcadeSubGameID;
+    char *pMovieName;
+    char movieName[65];
+    unsigned char field14_0xcd;
+    unsigned char field15_0xce;
+    unsigned char field16_0xcf;
+} Game;
+
+extern Game gGame;
+
+extern void SetStatusCamera(void);
 
 #endif // GAME_H

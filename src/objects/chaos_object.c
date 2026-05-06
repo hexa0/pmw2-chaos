@@ -13,7 +13,7 @@ int IsExcludedLevel() {
 
 /// @brief at base difficulty we apply a new effect after so many seconds, this will be scaled with difficulty
 #define CHAOS_EFFECT_RATE 20.0f / gModSettings.chaosEffectRateDiviser
-#define CHAOS_SHOULD_APPLY !gPacManOnMap && !pacNoControl && !IsExcludedLevel()
+#define CHAOS_SHOULD_APPLY gModSettings.chaosModActive && !gPacManOnMap && !pacNoControl && !IsExcludedLevel()
 
 typedef struct chaos_object_s
 {
@@ -57,6 +57,20 @@ void ChaosObject_Effect_WhackControls(chaos_object_t *obj, randomEffectMessage m
 	switch (message) {
 		case effect_activate:
 			pacManObject->controls_whacked = true;
+
+			if (!starTex) {	
+				// for (int i=1; i < 5; i++) {
+				// 	UpFileDirectory();
+				// }
+
+				DownFileDirectory("mod");
+				DownFileDirectory("chaos");
+				// for some reason this just fails to load sometimes on certain levels
+				// which is.. not good, no idea why since the game uses this function itself?
+				starTex = FindOrLoadTextureTo("whackedstars.pmi", 2);
+				UpFileDirectory();
+			}
+			
 			break;
 		case effect_deactive:
 			pacManObject->controls_whacked = false;
