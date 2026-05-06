@@ -413,7 +413,7 @@ extern void CreatePacInventory(void);
 extern void DrawPadDisconnectedString(void);
 
 /// @brief more like struct PMO am i right?
-struct PMI {
+typedef struct PMI {
     unsigned char magic[4];
     unsigned int header;
     float version;
@@ -430,11 +430,11 @@ struct PMI {
     unsigned char pmode;
     short unsigned int texBP;
     short unsigned int clutBP;
-};
+} PMI;
 
 typedef struct _nxf_material {
-    struct PMI *texpmi;
-    struct PMI *refpmi;
+    PMI *texpmi;
+    PMI *refpmi;
     char *texname;
     char *refmap;
     unsigned char refR;
@@ -550,7 +550,7 @@ typedef struct _sprite_geom {
     unsigned char b;
     unsigned char a;
     unsigned int flags;
-    struct PMI *image;
+    PMI *image;
     unsigned int pad;
     unsigned int offset;
 } SPRITE_GEOM;
@@ -1129,7 +1129,7 @@ typedef struct _texpage_entry {
     short unsigned int xPos;
     short unsigned int yPos;
     struct _texpage_entry *shared_entry;
-    struct PMI *image;
+    PMI *image;
     short unsigned int used;
     short unsigned int flags;
     unsigned int nByteSize;
@@ -1902,25 +1902,6 @@ extern float currentAspect;
 extern FMATRIX view_screen;
 extern FMATRIX view_clip;
 extern FMATRIX VU1_view_clip;
-
-typedef struct PMI {
-    unsigned char magic[4];
-    unsigned int header;
-    float version;
-    short unsigned int width;
-    short unsigned int height;
-    unsigned char depth;
-    unsigned char trans;
-    unsigned char tw;
-    unsigned char th;
-    short unsigned int clutDepth;
-    short unsigned int clutLen;
-    short unsigned int rowLen;
-    unsigned char flags;
-    unsigned char pmode;
-    short unsigned int texBP;
-    short unsigned int clutBP;
-} PMI;
 
 extern void PreloadRevRam(void);
 
