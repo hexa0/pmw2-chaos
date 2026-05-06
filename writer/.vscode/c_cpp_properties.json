@@ -1,0 +1,17 @@
+{
+	"configurations": [
+		{
+			"name": "PS2",
+			"includePath": [
+				"${workspaceFolder}/**",
+				"${PS2SDK}/ee/include",
+				"${PS2SDK}/common/include"
+			],
+			"defines": [],
+			"compilerPath": "${PS2DEV}/ee/bin/mips64r5900el-ps2-elf-gcc",
+			"cStandard": "c11",
+			"intelliSenseMode": "linux-gcc-x64"
+		}
+	],
+	"version": 4
+}

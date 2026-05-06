@@ -5,12 +5,16 @@
 			"path": ".."
 		},
 		{
-			"name": "mod src",
+			"name": "mod",
 			"path": "../src"
 		},
 		{
-			"name": "tool src",
+			"name": "tool",
 			"path": "../tool"
+		},
+		{
+			"name": "loader",
+			"path": "../writer"
 		}
 	],
 	"settings": {}
