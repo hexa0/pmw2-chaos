@@ -96,10 +96,12 @@ void init() {
 	__main();
 
 	stub_func_at((unsigned int)findfilehost);
-	// Game_Start call-site
-	assemble_j_at(0x002B79A8, (unsigned int)stage2);
 	// g_filehost = FILEHOST_DVD;
 	g_filehost = FILEHOST_UNIXDEV;
+	// Game_Start call-site
+	assemble_j_at(0x002B79A8, (unsigned int)stage2);
+	FlushCache(0);
+	FlushCache(2);
 }
 
 #endif
