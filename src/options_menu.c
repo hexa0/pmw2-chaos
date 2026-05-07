@@ -251,8 +251,8 @@ static mod_menu_option_t rootModOptions[] = {
 
 int GetSize(mod_menu_option_t *menu) {
 	int i = 0;
-    while (menu[i].type != OPTION_ENDMENU) i++;
-    return i;
+	while (menu[i].type != OPTION_ENDMENU) i++;
+	return i;
 }
 
 int ModSettingsMenu(sceGsDBuffDc_dummy_t *db) {

@@ -1910,7 +1910,9 @@ extern char * DownFileDirectory(char *directoryName);
 extern void UpFileDirectory(void);
 
 extern PMI * FindOrLoadTextureTo(char *name, unsigned int location);
+extern PMI * FindOrLoadTexture(char *name);
 
+extern PMI *blurTex;
 extern PMI *starTex;
 
 typedef struct MainFuncs_Struct {
@@ -1942,5 +1944,8 @@ typedef struct Game_Struct {
 extern Game gGame;
 
 extern void SetStatusCamera(void);
+
+extern void FontInit(void);
+extern void InitRevRam(void);
 
 #endif // GAME_H

@@ -5,18 +5,18 @@
 void widescreen_loading_bg_sprite_draw() {
 	__asm__ volatile (
 		"lui $v1, 0x3F00\n"
-        "mtc1 $v1, $f1\n"
-        
-        "la $v1, aspectWidthScale\n"
-        "lwc1 $f2, 0($v1)\n"
+		"mtc1 $v1, $f1\n"
+		
+		"la $v1, aspectWidthScale\n"
+		"lwc1 $f2, 0($v1)\n"
 
-        "sub.s $f12, $f12, $f1\n"
-        "mul.s $f12, $f12, $f2\n"
-        "add.s $f12, $f12, $f1\n"
+		"sub.s $f12, $f12, $f1\n"
+		"mul.s $f12, $f12, $f2\n"
+		"add.s $f12, $f12, $f1\n"
 
-        "li $a3, 1\n"
-        "j FontDrawSpriteZ\n"
-        "nop\n"
+		"li $a3, 1\n"
+		"j FontDrawSpriteZ\n"
+		"nop\n"
 	);
 }
 
@@ -34,18 +34,18 @@ void non_standard_fix_spr_aspect_correct() {
 	unsigned int aspect_width_addr = (unsigned int)&aspectWidthScale;
 
 	unsigned int hi = (aspect_width_addr + 0x8000) >> 16;
-    unsigned int lui_instr = 0x3C010000 | (hi & 0xFFFF);
-    
-    unsigned int lo = aspect_width_addr & 0xFFFF;
-    unsigned int lwc1_instr = 0xC4210000 | (lo & 0xFFFF);
+	unsigned int lui_instr = 0x3C010000 | (hi & 0xFFFF);
+	
+	unsigned int lo = aspect_width_addr & 0xFFFF;
+	unsigned int lwc1_instr = 0xC4210000 | (lo & 0xFFFF);
 
-    patch_word_le(0x0015A7A8, lui_instr);
-    patch_word_le(0x0015A7AC, lwc1_instr);
+	patch_word_le(0x0015A7A8, lui_instr);
+	patch_word_le(0x0015A7AC, lwc1_instr);
 }
 
 void non_standard_fix_spr_aspect_correct_revert() {
-    patch_word_le(0x0015A7A8, 0x3C013F40);
-    patch_word_le(0x0015A7AC, 0x44810800);
+	patch_word_le(0x0015A7A8, 0x3C013F40);
+	patch_word_le(0x0015A7AC, 0x44810800);
 }
 
 void UseAspect43() {

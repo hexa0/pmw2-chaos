@@ -4,28 +4,28 @@
 // #include <osd_config.h>
 
 void CommitSettings() {
-    unsigned char *s = (unsigned char*)&gStagedModSettings;
+	unsigned char *s = (unsigned char*)&gStagedModSettings;
 	unsigned char *d = (unsigned char*)&gModSettings;
 	
-    int size = sizeof(mod_settings_t);
-    
-    while (size--) {
-        *d++ = *s++;
-    }
+	int size = sizeof(mod_settings_t);
+	
+	while (size--) {
+		*d++ = *s++;
+	}
 
 	SetAspectRatio(&gModSettings.aspectRatio);
 	CurrentLanguage = gModSettings.currentLanguage;
 }
 
 void RestoreSettings() {
-    unsigned char *s = (unsigned char*)&gModSettings;
-    unsigned char *d = (unsigned char*)&gStagedModSettings;
+	unsigned char *s = (unsigned char*)&gModSettings;
+	unsigned char *d = (unsigned char*)&gStagedModSettings;
 
-    int size = sizeof(mod_settings_t);
-    
-    while (size--) {
-        *d++ = *s++;
-    }
+	int size = sizeof(mod_settings_t);
+	
+	while (size--) {
+		*d++ = *s++;
+	}
 
 	SetAspectRatio(&gModSettings.aspectRatio);
 	CurrentLanguage = gModSettings.currentLanguage;
@@ -45,8 +45,8 @@ int InitModSettings() {
 	gStagedModSettings.aspectRatio = RATIO_4_BY_3;
 
 	if (isEmulator) {
-        gStagedModSettings.aspectRatio = RATIO_16_BY_9;
-    }
+		gStagedModSettings.aspectRatio = RATIO_16_BY_9;
+	}
 
 	CommitSettings();
 }

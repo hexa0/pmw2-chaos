@@ -146,9 +146,9 @@ void replace_screen_adjust_menu() {
 void _closestream_host(int fd) {
 	printf("_closestream_host %d\n", fd);
 
-    if (fd >= 0) {
-        sceClose(fd);
-    }
+	if (fd >= 0) {
+		sceClose(fd);
+	}
 }
 
 // currently only get used for loading sound banks with our patches active since we don't use fixfordvd ourselves
@@ -159,20 +159,23 @@ int fixfordvd_hook(char *dst, char *filename) {
 }
 
 int _streamfilefrompc_host(char *filename, int *length) {
-	printf("streaming rar %s\n", filename);
 
 	char name[64];
 	sprintf(name, "host:netdata/%s", filename);
-    
-    int fd = sceOpen(name, 0x0001);
+	
+	int fd = sceOpen(name, 0x0001);
 
-    if (fd >= 0) {
-        *length = sceLseek(fd, 0, 2);
+	if (fd >= 0) {
+		printf("streaming rar %s\n", filename);
+
+		*length = sceLseek(fd, 0, 2);
 		levelRarSize = *length;
 		levelRarReadPosition = 0;
-        sceLseek(fd, 0, 0);
-    }
+		sceLseek(fd, 0, 0);
+	}
 	else {
+		printf("streaming rar levels/%s\n", filename);
+
 		// fixes loading screens stupidly relying on SCEECdSearchFile from the original code to resolve this stupidity
 		sprintf(name, "host:netdata/levels/%s", filename);
 
@@ -189,15 +192,15 @@ int _streamfilefrompc_host(char *filename, int *length) {
 		}
 	}
 
-    return fd;
+	return fd;
 }
 
 void _startstreaming_host(int fd, unsigned char *buffer, int size) {
 	int bytesRead = sceRead(fd, buffer, size);
 
 	if (bytesRead < 0) {
-        printf("rar streaming error: %d\n", fd);
-    }
+		printf("rar streaming error: %d\n", fd);
+	}
 	else {
 		levelRarReadPosition += bytesRead;
 	}
@@ -214,7 +217,7 @@ void inject_host_fs() {
 
 void calculate_screen_clip() {
 	view_screen[0][0] = view_screen[0][0] * aspectWidthScale;
-    view_clip[0][0] = view_clip[0][0] * aspectWidthScale;
+	view_clip[0][0] = view_clip[0][0] * aspectWidthScale;
 	// slightly extended for up to 21:9
 	VU1_view_clip[0][0] = 1.14f;
 
@@ -264,4 +267,27 @@ void inject_loading_progress() {
 	printf("injecting loading progress bar\n");
 	// SetStatusCamera callsite in LoadingBar
 	assemble_jal_at(0x00183828, (unsigned int)&ShowLoadingProgress);
+}
+
+void PreloadModAssets() {
+	FontInit();
+
+	if (!starTex) {
+		DownFileDirectory("mod");
+		DownFileDirectory("chaos");
+		starTex = FindOrLoadTextureTo("star.pmi",2);
+		UpFileDirectory(); // mod
+		UpFileDirectory(); // chaos
+	}
+
+	return;
+}
+
+void inject_custom_asset_preloading() {
+	printf("injecting custom asset preloading\n");
+	/// FontInit callsite in LoadingScreenCleanUp
+	assemble_jal_at(0x00183F50, (unsigned int)&PreloadModAssets);
+	// this normally resets starTex and blurTex, however we need starTex for controls_whacked
+	// this would reset after our texture is preloaded so we manually unset these in ChaosObject_Delete
+	stub_func_at((unsigned int)&InitRevRam);
 }

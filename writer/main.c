@@ -51,7 +51,7 @@ void stub_func_at(unsigned int func_addr) {
 /// @param to address to j to
 void assemble_j_at(unsigned int addr, unsigned int to) {
 	unsigned int instruction = (0x08000000) | ((to & 0x0FFFFFFF) >> 2);
-    *(volatile unsigned int*)addr = instruction;
+	*(volatile unsigned int*)addr = instruction;
 }
 
 /// @brief initializes the global ctors in the base game via __do_global_ctors

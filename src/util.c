@@ -16,7 +16,7 @@ void assemble_jal_at(unsigned int addr, unsigned int to) {
 /// @param to address to j to
 void assemble_j_at(unsigned int addr, unsigned int to) {
 	unsigned int instruction = (0x08000000) | ((to & 0x0FFFFFFF) >> 2);
-    *(volatile unsigned int*)addr = instruction;
+	*(volatile unsigned int*)addr = instruction;
 }
 
 /// @brief assembles and writes a NOP instruction at the specified address
@@ -27,15 +27,15 @@ void assemble_nop_at(unsigned int addr) {
 
 void patch_word(unsigned int addr, unsigned int data) {
 	unsigned int swapped = ((data>>24)&0xff) |
-                           ((data<<8)&0xff0000) |
-                           ((data>>8)&0xff00) |
-                           ((data<<24)&0xff000000);
+						   ((data<<8)&0xff0000) |
+						   ((data>>8)&0xff00) |
+						   ((data<<24)&0xff000000);
 
-    *(volatile unsigned int*)addr = swapped;
+	*(volatile unsigned int*)addr = swapped;
 }
 
 void patch_word_le(unsigned int addr, unsigned int instruction) {
-    *(volatile unsigned int*)addr = instruction;
+	*(volatile unsigned int*)addr = instruction;
 }
 
 /// @brief stubs the specified function
@@ -48,17 +48,17 @@ void stub_func_at(unsigned int func_addr) {
 }
 
 __asm__ (
-    ".global __extendsfdf2\n"
-    "__extendsfdf2:\n"
-    "mfc1 $v0, $f12\n"
-    "move $v1, $zero\n"
-    "jr $ra\n"
-    "nop\n"
+	".global __extendsfdf2\n"
+	"__extendsfdf2:\n"
+	"mfc1 $v0, $f12\n"
+	"move $v1, $zero\n"
+	"jr $ra\n"
+	"nop\n"
 );
 
 #define fmt(buf, format, ...) ({ \
-    sprintf(buf, format, ##__VA_ARGS__); \
-    (char*)(buf); \
+	sprintf(buf, format, ##__VA_ARGS__); \
+	(char*)(buf); \
 })
 
 /// @brief %f is fucked, so we have to reimplement it
@@ -101,5 +101,5 @@ char* float_to_str(char* out, float f, int precision) {
 
 /// @brief generate a random 0.0 - 1.0 float
 float frand() {
-    return (float)(rand()) / 2147483647.0f;
+	return (float)(rand()) / 2147483647.0f;
 }

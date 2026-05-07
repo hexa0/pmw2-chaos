@@ -17,15 +17,15 @@ extern void iopStartUp(void);
 
 extern void FlushCache(int);
 void log_scr(const char *format, ...) {
-    static char buffer[512]; // Static to save stack space
-    va_list args;
+	static char buffer[512]; // Static to save stack space
+	va_list args;
 
-    va_start(args, format);
-    vsnprintf(buffer, sizeof(buffer), format, args);
-    va_end(args);
+	va_start(args, format);
+	vsnprintf(buffer, sizeof(buffer), format, args);
+	va_end(args);
 
-    scr_printf("%s", buffer);
-    printf("%s", buffer);
+	scr_printf("%s", buffer);
+	printf("%s", buffer);
 }
 
 extern int sceOpen(const char *filename, int flag);
@@ -36,9 +36,9 @@ extern unsigned int sceLseek(int fd, int offset, int whence);
 static const char* slus_path = "cdrom0:\\SLUS_202.24;1";
 
 typedef struct vfs_entry_s {
-    char name[16];
-    unsigned int size;
-    unsigned int offset;
+	char name[16];
+	unsigned int size;
+	unsigned int offset;
 	unsigned char cksum;
 } vfs_entry_t;
 
@@ -64,7 +64,7 @@ void cinit() {
 	int fd = sceOpen(slus_path, 0x0001);
 
 	unsigned int total_entries = 0;
-    vfs_entry_t vfs_table[16];
+	vfs_entry_t vfs_table[16];
 
 	if (fd >= 0) {
 		isEmulator = 0;

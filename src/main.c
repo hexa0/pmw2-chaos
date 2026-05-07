@@ -4,32 +4,32 @@
 #include <stdio.h>
 
 void LockEEForMS(int ms) {
-    for (int i = 0; i < ms * 40000; i++) {
-        __asm__ volatile("nop");
-    }
+	for (int i = 0; i < ms * 40000; i++) {
+		__asm__ volatile("nop");
+	}
 }
 
 static const char* slus_path = "cdrom0:\\SLUS_202.24;1";
 
 typedef struct vfs_entry_s {
-    char name[16];
-    unsigned int size;
-    unsigned int offset;
+	char name[16];
+	unsigned int size;
+	unsigned int offset;
 	unsigned char cksum;
 } vfs_entry_t;
 
 #define VFS_OFFSET 5242880
 
 void log_scr(const char *format, ...) {
-    static char buffer[512];
-    va_list args;
+	static char buffer[512];
+	va_list args;
 
-    va_start(args, format);
-    vsnprintf(buffer, sizeof(buffer), format, args);
-    va_end(args);
+	va_start(args, format);
+	vsnprintf(buffer, sizeof(buffer), format, args);
+	va_end(args);
 
-    scr_printf("%s", buffer);
-    printf("%s", buffer);
+	scr_printf("%s", buffer);
+	printf("%s", buffer);
 }
 
 void Inject(BOOL isConsole) {
@@ -50,6 +50,7 @@ void Inject(BOOL isConsole) {
 	replace_screen_adjust_menu();
 	inject_widescreen_bug_fixes();
 	inject_loading_progress();
+	inject_custom_asset_preloading();
 
 	log_scr("flushing EE cache\n");
 	FlushCache(0);

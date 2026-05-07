@@ -57,20 +57,6 @@ void ChaosObject_Effect_WhackControls(chaos_object_t *obj, randomEffectMessage m
 	switch (message) {
 		case effect_activate:
 			pacManObject->controls_whacked = true;
-
-			if (!starTex) {	
-				// for (int i=1; i < 5; i++) {
-				// 	UpFileDirectory();
-				// }
-
-				DownFileDirectory("mod");
-				DownFileDirectory("chaos");
-				// for some reason this just fails to load sometimes on certain levels
-				// which is.. not good, no idea why since the game uses this function itself?
-				starTex = FindOrLoadTextureTo("whackedstars.pmi", 2);
-				UpFileDirectory();
-			}
-			
 			break;
 		case effect_deactive:
 			pacManObject->controls_whacked = false;
@@ -177,6 +163,8 @@ void ChaosObject_Effect_FastSpeed(chaos_object_t *obj, randomEffectMessage messa
 	switch (message) {
 		case effect_activate:
 			pacManGlobalMovementTweak = 2.0f;
+			lastPacmanPosition = pacManObject->Head.pos;
+			lastPacmanPosition.w = 0.0f;
 			break;
 		case effect_update:
 			if (pacManObject->Head.pos.w != 0.0f || pacManObject->motion.speed.x > 4.0f || pacManObject->motion.speed.x < -4.0f || pacManObject->motion.speed.y > 4.0f || pacManObject->motion.speed.y < -4.0f || pacManObject->motion.speed.z > 4.0f || pacManObject->motion.speed.z < -4.0f) {
@@ -305,7 +293,7 @@ static const chaos_effect_t gChaosEffects[] = {
 		.event = ChaosObject_Effect_WhackControls,
 		.name = "Whacked Controls",
 		.group = EFFECT_GROUP_NONE,
-		.weight = 0.7f,
+		.weight = 666.7f,
 		.durationMin = 15.0f,
 		.durationMax = 28.0f
 	},
@@ -579,6 +567,13 @@ void ChaosObject_Delete(chaos_object_t *obj)
 		printf("deactivating %s\n", gChaosEffects[id].name);
 		gChaosEffects[id].event(obj, effect_deactive);
 	}
+
+	// this is a REALLY ugly place to do this, but whatever
+
+	printf("clearing starTex and blurTex references\n");
+
+	starTex = 0x0;
+	blurTex = 0x0;
 }
 
 int ChaosObject(OBJHEAD *hd, messageType message, void *data)

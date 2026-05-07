@@ -22,8 +22,8 @@ void ShowReadError() {
 
 	for (int i = 1; i < 13; i++) {
 		scr_putchar(X * 7, Y * 8, 0xffffff, *err);
-        X++;
-        err++;
+		X++;
+		err++;
 	}
 	
 	while (1) {
@@ -40,8 +40,8 @@ void ShowLoad() {
 
 	for (int i = 1; i < 4; i++) {
 		scr_putchar(X * 7, Y * 8, 0xffffff, *load);
-        X++;
-        load++;
+		X++;
+		load++;
 	}
 
 	load -= 3;
@@ -56,8 +56,8 @@ void ShowLoad2() {
 
 	for (int i = 1; i < 5; i++) {
 		scr_putchar(X * 7, Y * 8, 0xffffff, *load);
-        X++;
-        load++;
+		X++;
+		load++;
 	}
 
 	load -= 4;
