@@ -293,7 +293,7 @@ static const chaos_effect_t gChaosEffects[] = {
 		.event = ChaosObject_Effect_WhackControls,
 		.name = "Whacked Controls",
 		.group = EFFECT_GROUP_NONE,
-		.weight = 666.7f,
+		.weight = 0.7f,
 		.durationMin = 15.0f,
 		.durationMax = 28.0f
 	},
