@@ -12,7 +12,7 @@ int IsExcludedLevel() {
 }
 
 /// @brief at base difficulty we apply a new effect after so many seconds, this will be scaled with difficulty
-#define CHAOS_EFFECT_RATE 20.0f / gModSettings.chaosEffectRateDiviser
+#define CHAOS_EFFECT_RATE 30.0f / gModSettings.chaosEffectRateDiviser
 #define CHAOS_SHOULD_APPLY gModSettings.chaosModActive && !gPacManOnMap && !pacNoControl && !IsExcludedLevel()
 
 typedef struct chaos_object_s
@@ -65,8 +65,6 @@ void ChaosObject_Effect_WhackControls(chaos_object_t *obj, randomEffectMessage m
 			break;
 	}
 }
-
-static unsigned int original_visibility_instr = 0;
 
 void ChaosObject_Effect_Invisible(chaos_object_t *obj, randomEffectMessage message) {
 	switch (message) {
@@ -146,7 +144,7 @@ void ChaosObject_Effect_BackwardsSpeed(chaos_object_t *obj, randomEffectMessage 
 void ChaosObject_Effect_SlowSpeed(chaos_object_t *obj, randomEffectMessage message) {
 	switch (message) {
 		case effect_activate:
-			pacManGlobalMovementTweak = 0.25f;
+			pacManGlobalMovementTweak = 0.4f;
 			break;
 		case effect_deactive:
 			pacManGlobalMovementTweak = 1.0f;
@@ -259,7 +257,7 @@ void ChaosObject_Effect_LowGravity(chaos_object_t *obj, randomEffectMessage mess
 void ChaosObject_Effect_HighGravity(chaos_object_t *obj, randomEffectMessage message) {
 	switch (message) {
 		case effect_activate:
-			GRAVITY = 0.4f;
+			GRAVITY = 0.28f;
 			break;
 		case effect_deactive:
 			GRAVITY = 0.2f;
@@ -294,16 +292,16 @@ static const chaos_effect_t gChaosEffects[] = {
 		.name = "Whacked Controls",
 		.group = EFFECT_GROUP_NONE,
 		.weight = 0.7f,
-		.durationMin = 15.0f,
-		.durationMax = 28.0f
+		.durationMin = 16.5f,
+		.durationMax = 32.0f
 	},
 	{
 		.event = ChaosObject_Effect_Invisible,
 		.name = "Invisible",
 		.group = EFFECT_GROUP_NONE,
 		.weight = 1.0f,
-		.durationMin = 15.0f,
-		.durationMax = 90.0f
+		.durationMin = 25.0f,
+		.durationMax = 78.0f
 	},
 	{
 		.event = ChaosObject_Effect_PaperPac,
@@ -311,7 +309,7 @@ static const chaos_effect_t gChaosEffects[] = {
 		.group = EFFECT_GROUP_NONE,
 		.weight = 0.9f,
 		.durationMin = 30.0f,
-		.durationMax = 45.0f
+		.durationMax = 70.0f
 	},
 	{
 		.event = ChaosObject_Effect_PancakePac,
@@ -319,29 +317,31 @@ static const chaos_effect_t gChaosEffects[] = {
 		.group = EFFECT_GROUP_NONE,
 		.weight = 0.9f,
 		.durationMin = 30.0f,
-		.durationMax = 45.0f
+		.durationMax = 70.0f
 	},
 	{
 		.event = ChaosObject_Effect_PissUI,
 		.name = "Piss UI",
 		.group = EFFECT_GROUP_NONE,
 		.weight = 0.9f,
-		.durationMin = 30.0f,
-		.durationMax = 65.0f
+		.durationMin = 32.0f,
+		.durationMax = 78.0f
 	},
 	{
 		.event = ChaosObject_Effect_SlowSpeed,
 		.name = "Slow Speed",
 		.group = EFFECT_GROUP_SPEED,
 		.weight = 0.8f,
-		.durationMin = 10.0f,
-		.durationMax = 25.0f
+		.durationMin = 8.0f,
+		.durationMax = 23.0f
 	},
 	{
+		// TODO: make it so we can set the bitmask for level types the effect should be available for
+		// in the water levels this sends you into the fucking edge of the universe
 		.event = ChaosObject_Effect_FastSpeed,
 		.name = "Fast Speed",
 		.group = EFFECT_GROUP_SPEED,
-		// a little glitchy sometimes
+		// a little glitchy sometimes so this is reduced until it is fixed
 		.weight = 0.7f,
 		.durationMin = 15.0f,
 		.durationMax = 30.0f
@@ -407,10 +407,44 @@ static const chaos_effect_t gChaosEffects[] = {
 		.event = ChaosObject_Effect_DoubleGameSpeed,
 		.name = "Double Game Speed",
 		.group = EFFECT_GROUP_GAMESPEED,
-		.weight = 0.8f,
+		.weight = 0.7f,
 		.durationMin = 10.0f,
 		.durationMax = 15.0f
 	}
+	
+	// possible ideas?
+
+	/* shitty internet
+		causes you to get rubber banded back randomly
+		sometimes it will ruberband but then unruberband quickly after as well with rng
+	*/ 
+
+	/* fixed camera
+		locks the camera in place (it will still look at pacman)
+		i could just stub CarlsComplexCameraCamera to do this,
+		or i can nop the jal in CrashCamUpdate (0x00138184)
+		that would be easier to restore
+		nvm it doesn't handle when the camera is a tower or rail camera
+		we could probably bypass camera volumes then
+	*/
+
+	/* effect wiki
+		once you encountered an effect it should have information about it in a menu you can check
+	*/
+
+	/* effect icons
+		once i reverse engineer pmi textures (haha more like pmo) we can have a sprite sheet of effect icons
+	*/
+
+	/* sound effects?
+		possible have some custom sounds when effects apply and what not
+		that would add some polish
+	*/
+
+	/* zero gravity
+		make it super short because this could just outright kill you if you take fall damage
+		like at most 3 seconds, probably 1 to 2 though
+	*/
 };
 
 #define RANDOM_EFFECTS_SIZE (sizeof(gChaosEffects) / sizeof(chaos_effect_t))

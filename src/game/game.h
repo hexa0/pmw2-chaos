@@ -224,7 +224,7 @@ typedef enum messageType {
 	/// @brief fired every frame, this should be used to render
     msg_render=1,
     msg_processFrameVisible=2,
-	/// @brief only fired every frame when unpaused, it isn't fired when ghosts killed either
+	/// @brief only fired every frame when unpaused, it isn't fired when ghosts are being eaten either
 	msg_processFrame=3,
 	/// @brief the object is being deleted, this is fired before it is fully removed
     msg_delete=4,
