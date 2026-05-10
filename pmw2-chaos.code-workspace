@@ -2,19 +2,19 @@
 	"folders": [
 		{
 			"name": "root",
-			"path": ".."
+			"path": "."
 		},
 		{
 			"name": "mod",
-			"path": "../src"
+			"path": "src"
 		},
 		{
 			"name": "tool",
-			"path": "../tool"
+			"path": "tool"
 		},
 		{
 			"name": "loader",
-			"path": "../writer"
+			"path": "writer"
 		}
 	],
 	"settings": {}
