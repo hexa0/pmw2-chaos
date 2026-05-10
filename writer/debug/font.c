@@ -1,3 +1,5 @@
+// this is heavily stripped from the original ps2dev source code to reduce to the bare minimum we need (to keep the pnach small)
+
 u8 msx[]=
 "\xf0\x48\x48\x70\x48\x48\xf0\x00"
 "\xf8\x80\x80\xf0\x80\x80\xf8\x00"

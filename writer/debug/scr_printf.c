@@ -1,3 +1,5 @@
+// this is heavily stripped from the original ps2dev source code to reduce to the bare minimum we need (to keep the pnach small)
+
 /*
 # _____     ___ ____     ___ ____
 #  ____|   |    ____|   |        | |____|
