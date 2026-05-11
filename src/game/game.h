@@ -138,6 +138,7 @@ extern void font_printfXY(float x, float y, char *fmt, ...);
 extern float fontCursorX;
 extern float fontCursorY;
 extern float fontCursorZ;
+extern float fontScale;
 
 extern void DrawFont(byte *buf);
 
@@ -412,25 +413,7 @@ extern void CreatePacInventory(void);
 
 extern void DrawPadDisconnectedString(void);
 
-/// @brief more like struct PMO am i right?
-typedef struct PMI {
-    unsigned char magic[4];
-    unsigned int header;
-    float version;
-    short unsigned int width;
-    short unsigned int height;
-    unsigned char depth;
-    unsigned char trans;
-    unsigned char tw;
-    unsigned char th;
-    short unsigned int clutDepth;
-    short unsigned int clutLen;
-    short unsigned int rowLen;
-    unsigned char flags;
-    unsigned char pmode;
-    short unsigned int texBP;
-    short unsigned int clutBP;
-} PMI;
+#include "pmi.h"
 
 typedef struct _nxf_material {
     PMI *texpmi;
@@ -1914,6 +1897,7 @@ extern PMI * FindOrLoadTexture(char *name);
 
 extern PMI *blurTex;
 extern PMI *starTex;
+extern PMI *missingImage;
 
 typedef struct MainFuncs_Struct {
     DRAW_RTN pUpdateFunc;

@@ -9,6 +9,10 @@
 			"path": "src"
 		},
 		{
+			"name": "assets",
+			"path": "assets"
+		},
+		{
 			"name": "tool",
 			"path": "tool"
 		},

@@ -9,21 +9,14 @@ void call_font_printf(float x, float y, const char* fmt) {
 		"nop\n"
 		:
 		: "m"(x), "m"(y), "r"(fmt)
-		: "$4", "$31", "$f12", "$f13", "memory"
+		: "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10", 
+		  "$11", "$12", "$13", "$14", "$15", "$31", 
+		  "$f12", "$f13", "memory"
 	);
-
-	return;
 }
 
 void call_SetFontScale(float scale) {
-	__asm__ __volatile__ (
-		"lwc1 $f12, %0\n"
-		"jal SetFontScale\n"
-		"nop\n"
-		:
-		: "m"(scale)
-		: "$f12", "$31", "memory"
-	);
+	fontScale = scale;
 
 	return;
 }
@@ -35,7 +28,9 @@ void call_Font_SetSelectColor(float alpha) {
 		"nop\n"
 		:
 		: "m"(alpha)
-		: "$f12", "$31", "memory"
+		: "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10", 
+		  "$11", "$12", "$13", "$14", "$15", "$31", 
+		  "$f12", "memory"
 	);
 
 	return;
@@ -48,10 +43,33 @@ void call_Font_SetNonSelectColor(float alpha) {
 		"nop\n"
 		:
 		: "m"(alpha)
-		: "$f12", "$31", "memory"
+		: "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10", 
+		  "$11", "$12", "$13", "$14", "$15", "$31", 
+		  "$f12", "memory"
 	);
 
 	return;
+}
+
+void call_FontDrawSprite(float xPos, float yPos, unsigned int zPos, PMI *img, float xWid, float yHeight, int ot, BOOL sprAspectCorrect) {
+	__asm__ __volatile__ (
+		"lwc1 $f12, %0\n"
+		"lwc1 $f13, %1\n"
+		"move $a0,   %2\n"
+		"move $a1,   %3\n"
+		"lwc1 $f14, %4\n"
+		"lwc1 $f15, %5\n"
+		"move $a2,   %6\n"
+		"move $a3,   %7\n"
+		"jal FontDrawSprite\n"
+		"nop\n"
+		:
+		: "m"(xPos), "m"(yPos), "r"(zPos), "r"(img), 
+		  "m"(xWid), "m"(yHeight), "r"(ot), "r"(sprAspectCorrect)
+		: "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10", 
+		  "$11", "$12", "$13", "$14", "$15", "$31", 
+		  "$f12", "$f13", "$f14", "$f15", "memory"
+	);
 }
 
 void playSoundSymbol(char *symbol) {
@@ -86,7 +104,7 @@ const char* GetPlayerActionName(PACRTN action) {
 		case 0x1eaf08: return "PMAIState";
 		case 0x1ec7e8: return "PMJumpForce";
 		case 0x172550: return "PMBurnInHell";
-		case 0x172710: return "PMDie";
+		case 0x1727a8: return "PMDie";
 		case 0x255840: return "PMRunRadiallyAt";
 		case 0x255bd8: return "PMRunAt";
 		case 0x271d98: return "PMOnSwingPlat";
@@ -138,4 +156,11 @@ const char* GetPlayerActionName(PACRTN action) {
 		
 		default: return "???";
 	}
+}
+
+///@brief reimplementation of FontHeight from projects/pacman/font.c,
+/// this fixes calling conventions
+float FontHeight()
+{
+	return fontScale * 0.0625f;
 }

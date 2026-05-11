@@ -271,14 +271,14 @@ void inject_loading_progress() {
 
 void PreloadModAssets() {
 	FontInit();
+	DownFileDirectory("mod");
 
 	if (!starTex) {
-		DownFileDirectory("mod");
-		DownFileDirectory("chaos");
 		starTex = FindOrLoadTextureTo("star.pmi",2);
-		UpFileDirectory(); // mod
-		UpFileDirectory(); // chaos
 	}
+
+	LoadEffectAssets();
+	UpFileDirectory(); // mod
 
 	return;
 }

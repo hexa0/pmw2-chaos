@@ -12,7 +12,7 @@ int IsExcludedLevel() {
 }
 
 /// @brief at base difficulty we apply a new effect after so many seconds, this will be scaled with difficulty
-#define CHAOS_EFFECT_RATE 30.0f / gModSettings.chaosEffectRateDiviser
+#define CHAOS_EFFECT_RATE 25.0f / gModSettings.chaosEffectRateDiviser
 #define CHAOS_SHOULD_APPLY gModSettings.chaosModActive && !gPacManOnMap && !pacNoControl && !IsExcludedLevel()
 
 typedef struct chaos_object_s
@@ -37,6 +37,12 @@ typedef enum randomEffectMessage {
 
 typedef void (*rng_effect_hndl)(chaos_object_t *obj, randomEffectMessage message);
 
+typedef enum effectIcon {
+	EI_unknown = 0,
+	EI_whacked_controls,
+	EI_moon_walk
+} effectIcon;
+
 typedef struct chaos_effect_s
 {
 	/// @brief the handle to the function which will apply the effect
@@ -51,6 +57,10 @@ typedef struct chaos_effect_s
 	float durationMin;
 	/// @brief controls the upper bound limit of how long the effect will last, setting this to -1.0f will make the duration always be durationMin
 	float durationMax;
+	/// @brief the icon to use
+	effectIcon icon;
+	/// @brief ptr to the effect icon
+	PMI *_icon;
 } chaos_effect_t;
 
 void ChaosObject_Effect_WhackControls(chaos_object_t *obj, randomEffectMessage message) {
@@ -286,10 +296,11 @@ void ChaosObject_Effect_DoubleGameSpeed(chaos_object_t *obj, randomEffectMessage
 #define EFFECT_GROUP_GRAVITY 3
 #define EFFECT_GROUP_GAMESPEED 4
 
-static const chaos_effect_t gChaosEffects[] = {
+static chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_WhackControls,
 		.name = "Whacked Controls",
+		.icon = EI_whacked_controls,
 		.group = EFFECT_GROUP_NONE,
 		.weight = 0.7f,
 		.durationMin = 16.5f,
@@ -349,6 +360,7 @@ static const chaos_effect_t gChaosEffects[] = {
 	{
 		.event = ChaosObject_Effect_BackwardsSpeed,
 		.name = "Moonwalk",
+		.icon = EI_moon_walk,
 		.group = EFFECT_GROUP_SPEED,
 		.weight = 1.0f,
 		.durationMin = 10.0f,
@@ -528,8 +540,7 @@ void ChaosObject_Process(chaos_object_t *obj)
 		obj->timer = obj->timer + ((gameTime - oldGameTime) / _engineSpeed);
 
 		for (int i = 0; i < obj->totalActiveEffects; i++) {
-			int effectId = obj->activeEffectIds[i];
-        	const chaos_effect_t* effect = &gChaosEffects[effectId];
+			const chaos_effect_t* effect = &gChaosEffects[obj->activeEffectIds[i]];
 
 			if (obj->timer >= obj->activeEffectExpirations[i]) {
 				effect->event(obj, effect_deactive);
@@ -555,28 +566,33 @@ void ChaosObject_Process(chaos_object_t *obj)
 	}
 }
 
+char hudTextScratchpad[512];
+char hudFloatScratchpad[128];
+char *scratchPtrs[2];
+
+void AdvanceScratchPtr(int i) {
+	int len = 1;
+
+	char* p = scratchPtrs[i];
+	while (*p != '\0') {
+		len++;
+		p++;
+	}
+
+	scratchPtrs[i] += len;
+}
+
 void ChaosObject_Render(chaos_object_t *obj)
 {
 	if (!ScreenFaderActive() && CHAOS_SHOULD_APPLY) {	
-		char effectListBuf[512];
-		char* effectListBufPtr = effectListBuf;
+		scratchPtrs[0] = (char*)&hudTextScratchpad;
+		scratchPtrs[1] = (char*)&hudFloatScratchpad;
 
-		*effectListBufPtr = '\0';
-
-		for (int i = 0; i < obj->totalActiveEffects; i++) {
-			int id = obj->activeEffectIds[i];
-			float remaining = obj->activeEffectExpirations[i] - obj->timer;
-			const char* name = gChaosEffects[id].name;
-
-			int written = sprintf(effectListBufPtr, "%s: %s\n", 
-				name, 
-				float_to_str((char[16]){0}, remaining, 1)
-			);
-
-			effectListBufPtr += written;
-		}
+		float hudX = 0.02f / (aspectWidthScale / 2.0f + 1.0f);
+		float hudY = 0.02f;
 
 		FontDefaults();
+		
 		SetFontShadow(1);
 		SetFontColor(255, 255, 255);
 		SetFontGradient(1);
@@ -584,11 +600,62 @@ void ChaosObject_Render(chaos_object_t *obj)
 		SetFontGradientBottomColor(180, 180, 0, 100);
 		call_SetFontScale(0.5);
 		SetFontAlignment(FONT_ALIGN_LEFT);
-		call_font_printf(widescreenAspect ? 0.015 : 0.02, 0.02, fmt((char[512]){0},
-			"Next Effect In: %s\n\n\n\n\n\n%s",
-			float_to_str((char[16]){0}, obj->nextEffect - obj->timer, 1),
-			effectListBuf
-		));
+
+		char* nextEffectInDuration = float_to_str(scratchPtrs[1], obj->nextEffect - obj->timer, 1);
+		AdvanceScratchPtr(1);
+
+		fmt(scratchPtrs[0],
+			"NEXT EFFECT IN: %s",
+			nextEffectInDuration
+		);
+
+		call_font_printf(hudX, hudY, scratchPtrs[0]);
+		AdvanceScratchPtr(0);
+
+		float lineHeight = FontHeight() * 1.3f;
+
+		for (int i = 0; i < obj->totalActiveEffects; i++) {
+			chaos_effect_t* effect = &gChaosEffects[obj->activeEffectIds[i]];
+
+			char* effectDuration = float_to_str(scratchPtrs[1], obj->activeEffectExpirations[i] - obj->timer, 1);
+			AdvanceScratchPtr(1);
+
+			fmt(scratchPtrs[0],
+				"%s: %s",
+				effect->name,
+				effectDuration
+			);
+			
+			call_font_printf(
+				hudX + (0.04f * aspectWidthScale),
+				hudY + (lineHeight * ((float)i + 5.0f)),
+				scratchPtrs[0]
+			);
+			AdvanceScratchPtr(0);
+		}
+
+		FontDefaults();
+
+		call_SetFontScale(0.5);
+		SetFontAlignment(FONT_ALIGN_LEFT);
+
+		float iconSize = FontHeight() * 1.2f;
+
+		for (int i = 0; i < obj->totalActiveEffects; i++) {
+			chaos_effect_t* effect = &gChaosEffects[obj->activeEffectIds[i]];
+
+			call_FontDrawSprite(
+				hudX,
+				hudY + (lineHeight * ((float)i + 5.0f)) - 0.002f,
+				0,
+				effect->_icon,
+				iconSize * aspectWidthScale,
+				iconSize,
+				0,
+				true
+			);
+		};
+
 		FontDefaults();
 	}
 }
@@ -633,4 +700,27 @@ int ChaosObject(OBJHEAD *hd, messageType message, void *data)
 	}
 
 	return 0;
+}
+
+/// @brief this assume we are already in the mod directory
+void LoadEffectAssets() {
+	DownFileDirectory("effecticon");
+
+	for (int i = 0; i < RANDOM_EFFECTS_SIZE; i++) {
+		// we might be overloading the vram as exiting levels shows the level pad as a corrupted texture
+		// but if that continues to be the only issue then ill ignore it, because who gives a shit about just that one texture breaking
+		switch (gChaosEffects[i].icon) {
+			case EI_whacked_controls:
+				gChaosEffects[i]._icon = FindOrLoadTextureTo("whacked_controls.pmi",2);
+				break;
+			case EI_moon_walk:
+				gChaosEffects[i]._icon = FindOrLoadTextureTo("moon_walk.pmi",2);
+				break;
+			default:
+				// an intentionally really stupid icon so i remember to make an icon/fix it
+				gChaosEffects[i]._icon = FindOrLoadTextureTo("effect_temp.pmi",2);
+		}
+	}
+
+	UpFileDirectory(); // effecticon
 }

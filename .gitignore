@@ -3,3 +3,5 @@ build
 SLUS_202.24
 game.iso
 game_bak.iso
+netdata
+.env

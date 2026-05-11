@@ -9,6 +9,7 @@ typedef struct debug_object_s
 	BOOL frameAdvance;
 	FVEC noclipLocation;
 	FVEC noclipSpeed;
+	PACRTN oldState;
 } debug_object_t;
 
 static BOOL debugUIShown = false;
@@ -40,7 +41,7 @@ int DebugObject(OBJHEAD *hd, messageType message, void *data)
 
 		DebugToggle(&debugUIShown, pads[1].btn.cross, pads[1].old_btn.cross);
 		DebugToggle(&widescreenAspect, pads[1].btn.left, pads[1].old_btn.left);
-		DebugToggle(&obj->pacmanNoclip, pads[1].btn.down, pads[1].old_btn.down);
+
 		if (DebugToggle(&obj->frameAdvance, pads[1].btn.up, pads[1].old_btn.up)) {
 			if (obj->frameAdvance) {
 				paused = 1;
@@ -61,15 +62,33 @@ int DebugObject(OBJHEAD *hd, messageType message, void *data)
 			}
 		}
 
-		if (!obj->pacmanNoclip)
-		{
-			obj->noclipLocation = pacManObject->Head.pos;
-			obj->noclipSpeed = pacManObject->motion.speed;
+		if (DebugToggle(&obj->pacmanNoclip, pads[1].btn.down, pads[1].old_btn.down)) {
+			if (obj->pacmanNoclip) {
+				obj->noclipLocation = pacManObject->Head.pos;
+				obj->noclipSpeed = pacManObject->motion.speed;
+				obj->oldState = pacManObject->PMAction;
+			}
+			else {
+				pacManObject->Head.pos = obj->noclipLocation;
+				pacManObject->motion.speed = obj->noclipSpeed;
+				pacManObject->PMAction = obj->oldState;
+			}
 		}
-		else
+
+		if (obj->pacmanNoclip)
 		{
+			float padX = ((float)pads[0].analog[2] / 255.0f) - 0.5f;
+			float padY = pads[0].btn.l2 ? 1.0f : pads[0].btn.r2 ? -1.0f : 0.0f;
+			float padZ = ((float)pads[0].analog[3] / 255.0f) - 0.5f;
+
+		
+			obj->noclipLocation.x += padX;
+			obj->noclipLocation.y += padY;
+			obj->noclipLocation.z += padZ;
+
 			pacManObject->Head.pos = obj->noclipLocation;
 			pacManObject->motion.speed = obj->noclipSpeed;
+			pacManObject->PMAction = PMDummyState;
 		}
 		
 		if (debugUIShown)
