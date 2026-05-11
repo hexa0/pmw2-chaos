@@ -81,10 +81,12 @@ int DebugObject(OBJHEAD *hd, messageType message, void *data)
 			float padY = pads[0].btn.l2 ? 1.0f : pads[0].btn.r2 ? -1.0f : 0.0f;
 			float padZ = ((float)pads[0].analog[3] / 255.0f) - 0.5f;
 
+			FVEC localMove = { -padX * 2.0f, padY * 2.0f, padZ * 2.0f, 0 };
+			FVEC worldMove = RotateVector(localMove, cameraRot);
 		
-			obj->noclipLocation.x += padX;
-			obj->noclipLocation.y += padY;
-			obj->noclipLocation.z += padZ;
+			obj->noclipLocation.x += worldMove.x;
+			obj->noclipLocation.y += worldMove.y;
+			obj->noclipLocation.z += worldMove.z;
 
 			pacManObject->Head.pos = obj->noclipLocation;
 			pacManObject->motion.speed = obj->noclipSpeed;

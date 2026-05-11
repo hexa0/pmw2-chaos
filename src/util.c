@@ -1,5 +1,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
+#include <math.h>
+
 #include "game/pmw2lib.h"
 
 /// @brief assembles and writes a JAL instruction at the specified address
@@ -102,4 +104,22 @@ char* float_to_str(char* out, float f, int precision) {
 /// @brief generate a random 0.0 - 1.0 float
 float frand() {
 	return (float)(rand()) / 2147483647.0f;
+}
+
+FVEC RotateVector(FVEC v, FVEC rot) {
+    float pitch = rot.x;
+    float yaw   = rot.y;
+
+    float cosY = cosf(yaw);
+    float sinY = sinf(yaw);
+    float sinP = sinf(pitch);
+
+    FVEC result;
+
+    result.x = (v.x * cosY) + (v.z * sinY);
+    result.z = (v.z * cosY) - (v.x * sinY);
+
+    result.y = v.y + (v.z * -sinP);
+
+    return result;
 }

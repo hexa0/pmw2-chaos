@@ -797,6 +797,8 @@ typedef struct _node_envelope_data {
 typedef float FVECTOR[4];
 typedef FVEC QUAT;
 
+extern FVEC cameraRot;
+
 typedef enum VISIBILITY {
     visibility_off=-1,
     invisible=0,
